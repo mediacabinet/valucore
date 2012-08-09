@@ -1,10 +1,10 @@
 <?php
 namespace Foaf\Acl;
 
-use Foaf\Acl\Backend,
-	Foaf\Acl\Role\Registry,
-	Zend\Permissions\Acl\Exception,
-	Zend\Permissions\Acl\Assertion;
+use Foaf\Acl\Backend;
+use Foaf\Acl\Role\Registry;
+use Zend\Permissions\Acl\Exception;
+use Zend\Permissions\Acl\Assertion\AssertionInterface;
 
 class Acl extends \Zend\Permissions\Acl\Acl{
 	
@@ -42,10 +42,10 @@ class Acl extends \Zend\Permissions\Acl\Acl{
 			$value = $this->{$property};
 		}
 		
-		$this->_roleRegistry 	= $roleRegistry;
+		$this->roleRegistry 	= $roleRegistry;
 		$this->backend 			= $backend;
 		
-		$this->_flush(true);
+		$this->doFlush(true);
 	}
 	
 	/**
@@ -57,7 +57,7 @@ class Acl extends \Zend\Permissions\Acl\Acl{
 	 * @return Acl
 	 */
 	public function flush(){
-		$this->_flush(false);
+		$this->doFlush(false);
 	}
 	
 	/**
@@ -70,7 +70,7 @@ class Acl extends \Zend\Permissions\Acl\Acl{
 	public function setUseAutoFlush($use)
 	{
 		$this->useAutoFlush = (bool) $use;
-		$this->_roleRegistry->setUseAutoFlush($this->useAutoFlush);
+		$this->roleRegistry->setUseAutoFlush($this->useAutoFlush);
 		
 		return $this;
 	}
@@ -117,7 +117,7 @@ class Acl extends \Zend\Permissions\Acl\Acl{
 		 */
 		try{
 			$removed = $this->getResource($resource);
-		}catch (Exception $e){}
+		}catch (\Exception $e){}
 		
 		parent::removeResource($resource);
 		
@@ -153,7 +153,7 @@ class Acl extends \Zend\Permissions\Acl\Acl{
 	 * (non-PHPdoc)
 	 * @see Zend\Permissions\Acl.Acl::allow()
 	 */
-	public function allow($roles = null, $resources = null, $privileges = null, Assertion $assert = null)
+	public function allow($roles = null, $resources = null, $privileges = null, AssertionInterface $assert = null)
 	{
 		parent::allow($roles, $resources, $privileges, $assert);
 		
@@ -175,7 +175,7 @@ class Acl extends \Zend\Permissions\Acl\Acl{
 	 * (non-PHPdoc)
 	 * @see Zend\Permissions\Acl.Acl::deny()
 	 */
-	public function deny($roles = null, $resources = null, $privileges = null, Assertion $assert = null)
+	public function deny($roles = null, $resources = null, $privileges = null, AssertionInterface $assert = null)
 	{
 		parent::deny($roles, $resources, $privileges, $assert);
 		
@@ -250,7 +250,7 @@ class Acl extends \Zend\Permissions\Acl\Acl{
 		$this->backend->removeAllowAll();
 		$this->backend->removeDenyAll();
 		
-		$this->_roleRegistry->removeAll();
+		$this->roleRegistry->removeAll();
 		
 		return $this;
 	}
@@ -258,14 +258,14 @@ class Acl extends \Zend\Permissions\Acl\Acl{
 	/**
 	 * @see flush();
 	 */
-	protected function _flush($new = false)
+	protected function doFlush($new = false)
 	{
 		if(!$new){
 			foreach ($this->resets as $property => $value){
 				$this->{$property} = $value;
 			}
 	
-			$this->_roleRegistry->flush();
+			$this->roleRegistry->flush();
 		}
 	
 		/**
@@ -375,7 +375,7 @@ class Acl extends \Zend\Permissions\Acl\Acl{
         $roles = array();
         foreach ($rolesTemp as $role) {
             if (null !== $role) {
-                $roles[] = $this->_getRoleRegistry()->get($role);
+                $roles[] = $this->getRoleRegistry()->get($role);
             }
         }
         unset($rolesTemp);
@@ -393,7 +393,7 @@ class Acl extends \Zend\Permissions\Acl\Acl{
 		if($resources === null){
 			return array();
 		} else if (!is_array($resources)) {
-            $resources = ($resources == null && count($this->_resources) > 0) ? array_keys($this->_resources) : array($resources);
+            $resources = ($resources == null && count($this->resources) > 0) ? array_keys($this->resources) : array($resources);
         } else if (0 === count($resources)) {
             $resources = array(null);
         }
