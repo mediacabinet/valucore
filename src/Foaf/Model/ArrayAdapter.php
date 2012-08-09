@@ -214,13 +214,14 @@ class ArrayAdapter{
 	             
 	            $getter 	= 'get'.ucfirst($name);
 	            $setter 	= 'set'.ucfirst($name);
-	             
+
 	            if( $reflectionClass->hasMethod($getter) &&
                     $reflectionClass->getMethod($getter)->isPublic()){
 	                 
 	                $definition['getters'][$name] = $getter;
 	            }
-	            else if($reflectionClass->hasMethod($setter) &&
+	            
+	            if($reflectionClass->hasMethod($setter) &&
 	                    $reflectionClass->getMethod($setter)->isPublic()){
 	    
 	                $definition['setters'][$name] = $setter;
