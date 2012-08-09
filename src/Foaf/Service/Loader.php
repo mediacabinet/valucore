@@ -103,13 +103,13 @@ class Loader{
 	
 	public function getServiceLocator()
 	{
-	    return $this->pluginManager->getServiceLocator();
+	    return $this->getPluginManager()->getServiceLocator();
 	}
 	
 	public function getPluginManager()
 	{
 	    if($this->pluginManager === null){
-	        $this->pluginManager = new PluginManager();
+	        $this->pluginManager = new ServiceManager();
 	        
 	        $self = $this;
 	         
@@ -122,7 +122,7 @@ class Loader{
 	        	 * Configure service
 	        	*/
 	        	if( $options !== null && sizeof($options) &&
-	        			$instance instanceof Feature\ConfigurableInterface){
+	        		$instance instanceof Feature\ConfigurableInterface){
 	        
 	        		$instance->setConfig($options);
 	        	}
@@ -166,9 +166,6 @@ class Loader{
 			if(is_null($options) && isset($impl['config'])){
 			    $options = $impl['config'];
 			}
-			else{
-			    $options = array();
-			}
 			
 			if(!$type){
 				throw new \InvalidArgumentException('Service type is not defined for service: '.$name);
@@ -186,6 +183,7 @@ class Loader{
 	
 	public function registerService($name, $type, $class = null, $options = array(), $priority = 1)
 	{
+
 		$this->services[$name] = array(
 			'name' => $name, 
 			'type' => $type,
@@ -246,8 +244,10 @@ class Loader{
 	 */
 	public function exists($service)
 	{
+	    $service = $this->normalizeService($service);
+	    
 	    foreach ($this->services as $specs){
-	        if(strtolower($specs['type']) == strtolower($service)){
+	        if($specs['type'] == $service){
 	            return true;
 	        }
 	    }
@@ -264,10 +264,11 @@ class Loader{
 	public function loadImplementations($service){
 		
 		$storage = new \SplObjectStorage();
+		$service = $this->normalizeService($service);
 		
 		foreach($this->services as $specs){
 		    
-			if(strtolower($specs['type']) == strtolower($service)){
+			if($specs['type'] == $service){
 
 			    $storage->attach(
 		            $this->load(
@@ -311,5 +312,9 @@ class Loader{
 	    else{
 	        return null;
 	    }
+	}
+	
+    public final function normalizeService($service){
+	    return strtolower($service);
 	}
 }
