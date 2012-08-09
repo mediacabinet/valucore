@@ -23,7 +23,7 @@ class Loader{
 	/**
 	 * Plugin manager
 	 * 
-	 * @var \Foaf\Service\PluginManager
+	 * @var \Foaf\Service\ServiceManager
 	 */
 	private $pluginManager;
 
