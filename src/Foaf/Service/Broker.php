@@ -2,6 +2,8 @@
 namespace Foaf\Service;
 
 use Foaf\Service\Loader;
+use Foaf\Service\Feature;
+use Foaf\Service\Plugin\PluginManager;
 use	Foaf\Service\Broker\Worker;
 use	Foaf\Service\Exception\ServiceNotFoundException;
 use	Zend\EventManager\EventManager;
@@ -65,8 +67,8 @@ class Broker{
 	{
 	    if (!is_array($options) && !$options instanceof \Traversable) {
 	        throw new \InvalidArgumentException(sprintf(
-	                'Expected an array or Traversable; received "%s"',
-	                (is_object($options) ? get_class($options) : gettype($options))
+                'Expected an array or Traversable; received "%s"',
+                (is_object($options) ? get_class($options) : gettype($options))
 	        ));
 	    }
 	
@@ -108,6 +110,15 @@ class Broker{
 	 */
 	public function setLoader(Loader $loader){
 		$this->loader = $loader;
+		
+		$self = $this;
+		
+		$loader->getPluginManager()->addInitializer(function ($instance) use ($self) {
+		    if($instance instanceof Feature\ServiceBrokerAwareInterface){
+		        $instance->setServiceBroker($self);
+		    }
+		});
+		
 		return $this;
 	}
 	
@@ -116,10 +127,11 @@ class Broker{
 	 * 
 	 * @return Loader
 	 */
-	public function getLoader(){
+	public function getLoader()
+	{
 		return $this->loader;
 	}
-	
+
 	/**
 	 * Set event manager
 	 * 
@@ -136,7 +148,7 @@ class Broker{
 	 * 
 	 * @return EventManagerInterface
 	 */
-	public function events(){
+	public function getEventManager(){
 		
 		if(null === $this->commonEventManager){
 			$this->commonEventManager = new EventManager();
@@ -315,7 +327,7 @@ class Broker{
 		}
 	
 		/**
-		 * Unbind bound services that no longer exist in the stack
+		 * Unbind services that no longer exist in the stack
 		 */
 		if(sizeof($this->attached[$name])){
 			foreach($this->attached[$name] as $key => $impl){
@@ -397,10 +409,6 @@ class Broker{
 	
 	protected function trigger($event, $service, array $argv, $callback = null)
 	{
-		if($this->events()){
-			return $this->events()->trigger($event, $service, $argv, $callback);
-		}
-		
-		return null;
+		return $this->getEventManager()->trigger($event, $service, $argv, $callback);
 	}
 }
