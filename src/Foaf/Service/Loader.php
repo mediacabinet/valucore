@@ -186,7 +186,7 @@ class Loader{
 
 		$this->services[$name] = array(
 			'name' => $name, 
-			'type' => $type,
+			'type' => $this->normalizeService($type),
 			'options' => $options,
 			'priority' => $priority
 		);
