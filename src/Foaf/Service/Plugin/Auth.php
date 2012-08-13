@@ -16,9 +16,9 @@ class Auth extends AbstractPlugin
         return $this->getIdentity('username');
     }
     
-    public function getUserId()
+    public function getUuid()
     {
-        return $this->getIdentity('id');
+        return $this->getIdentity('uuid');
     }
     
     /**
@@ -29,11 +29,12 @@ class Auth extends AbstractPlugin
      */
     public function getIdentity($spec = null)
     {
-        if(!$this->auth()->hasIdentity()){
+        $identity = $this->auth()->until('is_array')->getIdentity();
+        
+        if(!$identity)
+        {
             throw new \Exception('User identity not found');
         }
-        
-        $identity = $this->auth()->getIdentity();
         
         if($spec !== null){
             return isset($identity[$spec])
