@@ -200,7 +200,7 @@ abstract class AbstractService
 	/**
 	 * Retrieve service locator instance
 	 *
-	 * @return \Zend\ServiceLocator\ServiceLocatorInterface
+	 * @return \Zend\ServiceManager\ServiceLocatorInterface
 	 */
 	public function getServiceLocator()
 	{
