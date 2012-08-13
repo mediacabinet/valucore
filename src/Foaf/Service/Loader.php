@@ -123,7 +123,7 @@ class Loader{
 	        	*/
 	        	if( $options !== null && sizeof($options) &&
 	        		$instance instanceof Feature\ConfigurableInterface){
-	        
+	        	    
 	        		$instance->setConfig($options);
 	        	}
 	        
@@ -223,10 +223,13 @@ class Loader{
 	    }
 	    
 	    try{
-	        if($options !== null){
+	        /**
+	         * Load pre-configured options
+	         */
+	        if($options == null){
 	            $options = $this->services[$name]['options'];
 	        }
-
+	        
 	        $service = $this->getPluginManager()->get($name, $options);
 	        return $service;
 	    }
