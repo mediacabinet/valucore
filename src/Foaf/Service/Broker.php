@@ -37,7 +37,7 @@ class Broker{
 	 *
 	 * @var EventManagerInterface
 	 */
-	private $commonEventManager;
+	private $commonEventManager = null;
 	
 	/**
 	 * Array of attached services
@@ -113,7 +113,7 @@ class Broker{
 		
 		$self = $this;
 		
-		$loader->getPluginManager()->addInitializer(function ($instance) use ($self) {
+		$this->loader->getPluginManager()->addInitializer(function ($instance) use ($self) {
 		    if($instance instanceof Feature\ServiceBrokerAwareInterface){
 		        $instance->setServiceBroker($self);
 		    }
@@ -164,7 +164,7 @@ class Broker{
 	 * @return boolean
 	 */
 	public function exists($service){
-		return $this->loader->exists($service);
+		return $this->getLoader()->exists($service);
 	}
 	
 	/**
@@ -280,7 +280,7 @@ class Broker{
 	 */
 	public function getImplementations($service)
 	{
-		return $this->loader->loadImplementations($service);
+		return $this->getLoader()->loadImplementations($service);
 	}
 	
 	/**
@@ -341,7 +341,7 @@ class Broker{
 	}
 	
 	protected function exec($untilFlag, $context, $service, $operation, $argv = array(), $callback = null){
-		
+	    
 	    if(!$this->exists($service)){
 	        throw new ServiceNotFoundException(sprintf('Service "%s" not found', $service));
 	    }
