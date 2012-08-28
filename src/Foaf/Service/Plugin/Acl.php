@@ -18,7 +18,7 @@ class Acl extends AbstractPlugin
      * @param string $messageTemplate
      * @param array $messageParams
      * @throws \InvalidArgumentException
-     * @throws Exception\AccessDeniedException
+     * @throws Exception\PermissionDeniedException
      */
     public function assertAllow($role, $resource, $privilege, $messageTemplate = '', $messageParams = array())
     {
@@ -46,7 +46,7 @@ class Acl extends AbstractPlugin
                 $messageTemplate = 'Role "%ROLE%" does not have enough privileges to perform operation "%OPERATION%" for resource "%RESOURCE%"';
             }
             
-            throw new Exception\AccessDeniedException(
+            throw new Exception\PermissionDeniedException(
                 $messageTemplate,
                 $messageParams
             );
