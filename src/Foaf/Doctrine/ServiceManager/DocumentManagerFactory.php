@@ -6,7 +6,6 @@ use Foaf\Service\Loader;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Doctrine\ODM\MongoDB\Configuration as MongoDbConfig;
-use Doctrine\ODM\MongoDB\Mapping\Driver\DriverChain as MongoDbDriverChain;
 use Doctrine\MongoDB\Connection;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 
