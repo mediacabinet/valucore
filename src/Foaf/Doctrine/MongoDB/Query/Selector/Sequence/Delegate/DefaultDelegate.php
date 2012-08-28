@@ -316,7 +316,7 @@ class DefaultDelegate implements SequenceDelegate
     
         switch ($operator) {
             case null:
-                $field->exists();
+                $field->exists(true);
                 break;
             case SimpleSelectorDefinition\Attribute::OPERATOR_EQUALS:
                 $field->equals($cond);
