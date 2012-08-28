@@ -348,27 +348,6 @@ abstract class AbstractService
     }
     
     /**
-     * Method overloading: return/call plugins
-     *
-     * If the plugin is a functor, call it, passing the parameters provided.
-     * Otherwise, return the plugin instance.
-     *
-     * @param  string $method
-     * @param  array $params
-     * @return mixed
-     */
-    public function __call($method, array $params)
-    {
-        $plugin = $this->plugin($method);
-        
-        if (is_callable($plugin)) {
-            return call_user_func_array($plugin, $params);
-        }
-        
-        return $plugin;
-    }
-    
-    /**
      * Retrieve shared definition driver
      * 
      * @return DriverInterface
