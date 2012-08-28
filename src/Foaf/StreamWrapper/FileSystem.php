@@ -341,7 +341,7 @@ class FileSystem{
         }
         
         if($this->fileContent === null){
-            $bytes = $this->fs()->getFileBytes($this->file);
+            $bytes = $this->fs()->read($this->file);
             if($bytes === null) $bytes = '';
             
             $this->fileContent = $bytes;
