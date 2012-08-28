@@ -57,7 +57,7 @@ trait InputFilterTrait
      */
     public static function setDefaultInputFilter(InputFilter $inputFilter)
     {
-        self::$defaultInputFilter = $inputFilter;
+        static::$defaultInputFilter = $inputFilter;
     }
     
     /**
@@ -67,7 +67,7 @@ trait InputFilterTrait
      */
     public static function getDefaultInputFilter()
     {
-        return self::$defaultInputFilter;
+        return static::$defaultInputFilter;
     }
     
     /**
