@@ -83,7 +83,7 @@ class ArrayAdapter{
 
 	    if(!is_object($object)){
 	        throw new \InvalidArgumentException(
-	                'Invalid value for argument $object; '.gettype($object).' given, object expexted'
+                'Invalid value for argument $object; '.gettype($object).' given, object expexted'
 	        );
 	    }
 	    
@@ -166,11 +166,17 @@ class ArrayAdapter{
 	{
 	    $cache = $this->getCacheAdapter();
 	    
+	    $className = $class instanceof \ReflectionClass
+	        ? $class->getName() : (string) $class;
+	    
+	    // Make class name valid for cache adapters
+	    $cacheId = str_replace('\\', '_', $className);
+	    
 	    /**
 	     * Fetch from cache
 	     */
-	    if ($cache && $cache->hasItem($class)) {
-	        $definition = $cache->getItem($class);
+	    if ($cache && $cache->hasItem($cacheId)) {
+	        $definition = $cache->getItem($cacheId);
 	    }
 	    /**
 	     * Parse definition
@@ -182,7 +188,7 @@ class ArrayAdapter{
 	         * Cache definition
 	         */
 	        if ($cache) {
-	            $cache->setItem($class, $definition);
+	            $cache->setItem($cacheId, $definition);
 	        }
 	    }
 	    
@@ -197,9 +203,21 @@ class ArrayAdapter{
 	 */
 	private function parseClassDefinition($class)
 	{
-	    $reflectionClass  = new \ReflectionClass($class);
-	    $properties       = $reflectionClass->getProperties();
-	    $definition       = array('getters' => array(), 'setters' => array());
+	    if(is_string($class)){
+	        $reflectionClass = new \ReflectionClass($class);
+	    }
+	    else if($class instanceof \ReflectionClass){
+	        $reflectionClass = $class;
+	    }
+	    else{
+	        throw new \InvalidArgumentException('Invalid class, string or ReflectionClass expected');
+	    }
+
+        $definition = array(
+            'getters' => array(), 'setters' => array()
+        );
+	    
+	    $properties = $reflectionClass->getProperties();
 	     
 	    $specs = array();
 	    if(!empty($properties)){
