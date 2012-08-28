@@ -25,7 +25,7 @@ class Loader{
 	 * 
 	 * @var \Foaf\Service\ServiceManager
 	 */
-	private $pluginManager;
+	private $pluginManager = null;
 
 	/**
 	 * Invoker
@@ -114,7 +114,7 @@ class Loader{
 	        $self = $this;
 	         
 	        $this->pluginManager->addInitializer(function ($instance, $pluginManager) use ($self) {
-	        	 
+	            
 	        	$name     = $pluginManager->getCreationInstanceName();
 	        	$options  = $pluginManager->getCreationInstanceOptions();
 	        	 
@@ -190,7 +190,7 @@ class Loader{
 			'options' => $options,
 			'priority' => $priority
 		);
-
+		
 		if($class !== null){
     		$this->getPluginManager()->setInvokableClass(
     			$name, 
