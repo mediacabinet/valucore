@@ -108,14 +108,15 @@ class DefinitionBased implements InvokerInterface
     private function defineService(DefinitionProviderInterface $service)
     {
         $class = get_class($service);
+        $cacheId = str_replace('\\', '_', $class);
         $version = $class::version();
         $definition = null;
         
         /**
          * Fetch from cache
          */
-        if ($this->cacheAdapter && $this->cacheAdapter->hasItem($class)) {
-            $definition = $this->cacheAdapter->getItem($class);
+        if ($this->cacheAdapter && $this->cacheAdapter->hasItem($cacheId)) {
+            $definition = $this->cacheAdapter->getItem($cacheId);
             
             if ($definition->getVersion() !== $version) {
                 $definition = null;
@@ -130,7 +131,7 @@ class DefinitionBased implements InvokerInterface
              * Cache definition
              */
             if ($this->cacheAdapter) {
-                $this->cacheAdapter->setItem($class, $definition);
+                $this->cacheAdapter->setItem($cacheId, $definition);
             }
         }
         
