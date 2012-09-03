@@ -16,12 +16,17 @@ class ServiceBrokerFactory implements FactoryInterface
         
         $scopedLocator = $serviceLocator->createScopedServiceManager();
         
+        $loaderOptions = array(
+            'services'	=> $services,
+            'locator'	=> $scopedLocator,
+        );
+        
+        if(isset($config['service_broker']['cache_adapter'])){
+            $loaderOptions['cache_adapter'] = $config['service_broker']['cache_adapter'];
+        }
+        
         $loader = new Loader(
-            array(
-                'services'	=> $services,
-                'locator'	=> $scopedLocator,
-                'cache_adapter' => $config['service_broker']['cache_adapter']
-            )
+            $loaderOptions
         );
         
         // Look for services from global service locator as well
