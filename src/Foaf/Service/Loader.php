@@ -1,6 +1,8 @@
 <?php
 namespace Foaf\Service;
 
+use Zend\EventManager\EventManager;
+
 use	SplObjectStorage;
 use	Foaf\Service\Exception;
 use	Foaf\Service\Feature;
@@ -19,6 +21,21 @@ class Loader{
 	 * @var PriorityQueue
 	 */
 	private $services;
+	
+	/**
+	 * Array that maps service IDs to
+	 * corresponding service names
+	 * 
+	 * @var array
+	 */
+	private $serviceNames;
+	
+	/**
+	 * Contains un-attached service IDs
+	 * 
+	 * @var array
+	 */
+	private $unAttached;
 	
 	/**
 	 * Plugin manager
@@ -47,6 +64,7 @@ class Loader{
 	public function __construct($options = null)
 	{
 		$this->services = array();
+		$this->serviceNames = array();
 		
 		if(null !== $options){
 			$this->setOptions($options);
@@ -153,11 +171,19 @@ class Loader{
 	    $this->cache['adapter']['options'] = $options;
 	}
 	
+	/**
+	 * Batch register services
+	 * 
+	 * @param array $services
+	 * @throws \InvalidArgumentException
+	 * @return \Foaf\Service\Loader
+	 */
 	public function registerServices(array $services)
 	{
-		foreach($services as $name => $impl){
+		foreach($services as $key => $impl){
 		    
-			$type 		= isset($impl['type']) ? $impl['type'] : $name;
+			$id 		= isset($impl['id']) ? $impl['id'] : $key;
+			$name 	    = isset($impl['name']) ? $impl['name'] : null;
 			$class 		= isset($impl['class']) ? $impl['class'] : null;
 			$factory 	= isset($impl['factory']) ? $impl['factory'] : null;
 			$options 	= isset($impl['options']) ? $impl['options'] : null;
@@ -167,33 +193,57 @@ class Loader{
 			    $options = $impl['config'];
 			}
 			
-			if(!$type){
-				throw new \InvalidArgumentException('Service type is not defined for service: '.$name);
+			if(!$name){
+				throw new \InvalidArgumentException('Service name is not defined for service: '.$id);
 			}
 			
-			$this->registerService($name, $type, $class, $options, $priority);
+			$this->registerService($id, $name, $class, $options, $priority);
 			
 			if($factory){
-			    $this->setServiceFactory($name, $factory);
+			    $this->setServiceFactory($id, $factory);
 			}
 		}
 		
 		return $this;
 	}
 	
-	public function registerService($name, $type, $class = null, $options = array(), $priority = 1)
+	/**
+	 * Register service
+	 * 
+	 * @param string $id Unique service ID
+	 * @param string $name Service name
+	 * @param string $class Invokable service class name
+	 * @param array $options
+	 * @param int $priority
+	 * @return \Foaf\Service\Loader
+	 */
+	public function registerService($id, $name, $class = null, $options = array(), $priority = 1)
 	{
 
-		$this->services[$name] = array(
-			'name' => $name, 
-			'type' => $this->normalizeService($type),
+	    $name = $this->normalizeService($name);
+	    
+	    if(!isset($this->services[$name])){
+	        $this->services[$name] = array();
+	    }
+	    
+		$this->services[$name][$id] = array(
 			'options' => $options,
 			'priority' => $priority
 		);
 		
+		$this->serviceNames[$id] = $name;
+		
+		// Mark service un-attached
+		if(!isset($this->unAttached[$name])){
+		    $this->unAttached[$name] = array();
+		}
+		
+		$this->unAttached[$name][] = $id;
+		
+		// Register as invokable
 		if($class !== null){
     		$this->getPluginManager()->setInvokableClass(
-    			$name, 
+    			$id, 
     			$class
     		);
 		}
@@ -201,24 +251,35 @@ class Loader{
 		return $this;
 	}
 	
-	public function setServiceFactory($name, $factory)
+	/**
+	 * Define service factory class name for service ID
+	 * 
+	 * @param string $id
+	 * @param string $factory
+	 * @return \Foaf\Service\Loader
+	 */
+	public function setServiceFactory($id, $factory)
 	{
-	    $this->getPluginManager()->setFactory($name, $factory);
+	    $this->getPluginManager()->setFactory($id, $factory);
 	    return $this;
 	}
 	
 	/**
-	 * Loads specific service
+	 * Loads specific service by ID
 	 * 
 	 * @param string $name Service name
 	 * @param array $options Options to apply when first initialized
 	 * @return ServiceInterface
 	 */
-	public function load($name, $options = null)
+	public function load($id, $options = null)
 	{
-	    if(!isset($this->services[$name])){
+	    $name = isset($this->serviceNames[$id])
+	        ? $this->serviceNames[$id]
+	        : null;
+	    
+	    if(!$name){
 	        throw new Exception\ServiceNotFoundException(
-                sprintf('Service by name "%s" does not exist', $name)
+                sprintf('Service ID "%s" does not exist', $id)
             );
 	    }
 	    
@@ -227,15 +288,15 @@ class Loader{
 	         * Load pre-configured options
 	         */
 	        if($options == null){
-	            $options = $this->services[$name]['options'];
+	            $options = $this->services[$name][$id]['options'];
 	        }
 	        
-	        $service = $this->getPluginManager()->get($name, $options);
-	        return $service;
+	        $instance = $this->getPluginManager()->get($id, $options);
+	        return $instance;
 	    }
 	    catch(\Zend\Loader\Exception\RuntimeException $e){
 	        throw new Exception\InvalidServiceException(
-	            sprintf('Service implementation "%s" is not a valid. Maybe the class doesn\'t implement ServiceInterface interface.', $name)
+	            sprintf('Service implementation "%s" is not a valid. Maybe the class doesn\'t implement ServiceInterface interface.', $id)
 	        );
 	    }
 	}
@@ -243,47 +304,45 @@ class Loader{
 	/**
 	 * Test if a service exists
 	 * 
-	 * @param string $service
+	 * @param string $name
 	 */
-	public function exists($service)
+	public function exists($name)
 	{
-	    $service = $this->normalizeService($service);
+	    $name = $this->normalizeService($name);
 	    
-	    foreach ($this->services as $specs){
-	        if($specs['type'] == $service){
-	            return true;
-	        }
+	    return  isset($this->services[$name]) && 
+	            sizeof($this->services[$name]);
+	}
+
+	/**
+	 * Attach listeners to event manager by service name
+	 * 
+	 * This method should not be called outside Broker.
+	 * 
+	 * @param EventManager $eventManager
+	 * @param string $name Name of the service
+	 */
+	public function attachListeners(EventManager $eventManager, $name)
+	{
+	    $normalName = $this->normalizeService($name);
+	    
+	    if( !isset($this->services[$normalName]) || 
+            !sizeof($this->services[$normalName]) ||
+	        !sizeof($this->unAttached[$normalName])){
+	        
+	        return;
 	    }
 	    
-		return false;
-	}
-	
-	/**
-	 * Load queue of service implementations
-	 * 
-	 * @param string $type
-	 * @return \SplObjectStorage
-	 */
-	public function loadImplementations($service){
-		
-		$storage = new \SplObjectStorage();
-		$service = $this->normalizeService($service);
-		
-		foreach($this->services as $specs){
-		    
-			if($specs['type'] == $service){
-
-			    $storage->attach(
-		            $this->load(
-					    $specs['name'],
-					    $specs['options']
-				    ), 
-		            $specs['priority']
-			    );
-			}
-		}
-		
-		return $storage;
+	    // Attach all
+	    foreach($this->unAttached[$normalName] as $id){
+            $eventManager->attach(
+                $name, 
+                $this->load($id), 
+                $this->services[$normalName][$id]['priority']
+            );
+	    }
+	    
+	    $this->unAttached[$normalName] = array();
 	}
 	
 	/**
@@ -309,7 +368,7 @@ class Loader{
 	 */
 	protected function getCacheAdapter()
 	{
-	    if($this->cache['adapter']['name']){
+	    if(isset($this->cache['adapter']['name'])){
 	        return StorageFactory::factory($this->cache);
 	    }
 	    else{
@@ -317,7 +376,7 @@ class Loader{
 	    }
 	}
 	
-    public final function normalizeService($service){
-	    return strtolower($service);
+    public final function normalizeService($name){
+	    return strtolower($name);
 	}
 }

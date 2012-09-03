@@ -273,17 +273,6 @@ class Broker{
 	}
 	
 	/**
-	 * Retrieve implementations and their priority information for service
-	 * 
-	 * @param string $service
-	 * @return \SplObjectStorage
-	 */
-	public function getImplementations($service)
-	{
-		return $this->getLoader()->loadImplementations($service);
-	}
-	
-	/**
 	 * Prepares events for operation
 	 * 
 	 * @param string $context
@@ -294,48 +283,14 @@ class Broker{
 	 */
 	protected function prepareEvent($context, $service, $operation, $argv)
 	{
-		$name	= $service . '.' . $operation;
-		$storage= $this->getImplementations($service);
 		$argv	= is_null($argv) ? array() : $argv;
 		
 		$event 	= new ServiceEvent();
 		$event->setParams($argv);
-		$event->setName($name);
+		$event->setName($service);
 		$event->setService($service);
 		$event->setOperation($operation);
 		$event->setContext($context);
-		
-		if(!isset($this->attached[$name])){
-		    $this->attached[$name] = array();
-		}
-
-		/**
-		 * Bind services that have not been bound previously
-		 */
-		if(sizeof($storage)){
-			foreach($storage as $impl){
-				if(!in_array($impl, $this->attached[$name], true)){
-					$this->attached[$name][] = $impl;
-	
-					$this->serviceEventManager->attach(
-						$name,
-						$impl,
-						$storage->offsetGet($impl)
-					);
-				}
-			}
-		}
-	
-		/**
-		 * Unbind services that no longer exist in the stack
-		 */
-		if(sizeof($this->attached[$name])){
-			foreach($this->attached[$name] as $key => $impl){
-				if(!$storage->contains($impl)){
-					unset($this->attached[$name][$key]);
-				}
-			}
-		}
 		
 		return $event;
 	}
@@ -349,12 +304,18 @@ class Broker{
 		$event	= $this->prepareEvent($context, $service, $operation, $argv);
 		$name	= $event->getName();
 		
+		$this->getLoader()->attachListeners(
+	        $this->serviceEventManager,
+	        $name
+		);
+		
+		// Prepare and trigger pre.<ServiceName>.<operationName> event
 		$eventArgs = array(
 			'argv' 		=> $argv,
 			'service' 	=> $service,
 			'operation' => $operation
 		);
-
+		
 		$eventResponses = $this->trigger(
 			'pre.'.$name, 
 			$service, 
@@ -380,6 +341,7 @@ class Broker{
 			}
 		}
 		
+		// Trigger actual service event
 		if($untilFlag){
 			$responses = $this->serviceEventManager->triggerUntil(
 				$event,
@@ -388,11 +350,11 @@ class Broker{
 		}
 		else{
 			$responses = $this->serviceEventManager->trigger(
-				$event,
-				$callback
+				$event
 			);
 		}
 		
+		// Prepare and trigger post.<ServiceName>.<operationName> event
 		$eventArgs = array(
 			'argv' 		=> $argv,
 			'responses' => $responses 	
