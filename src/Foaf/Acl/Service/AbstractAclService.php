@@ -3,15 +3,32 @@ namespace Foaf\Acl\Service;
 
 use Foaf\Service\AbstractService;
 use Foaf\Acl\Acl;
+use Zend\Cache\Storage\StorageInterface;
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
 
 abstract class AbstractAclService extends AbstractService
 {
     protected $optionsClass = 'Foaf\Acl\Service\AclServiceOptions';
     
+    /**
+     * Cache ID
+     * 
+     * @var string
+     */
     protected $cacheId;
     
+    /**
+     * Cache adapter
+     * 
+     * @var \Zend\Cache\Storage\StorageInterface
+     */
     private $cache;
     
+    /**
+     * Acl instance
+     * 
+     * @var \Foaf\Acl\Acl
+     */
     private $acl;
     
     /**
@@ -24,13 +41,23 @@ abstract class AbstractAclService extends AbstractService
         return self::configureAcl();
     }
     
+    /**
+     * Retrieve Foaf\Acl\Ac instance
+     * 
+     * @return \Foaf\Acl\Ac
+     */
     public function getAcl()
     {
         if(!$this->acl){
             $acl = null;
+            $cached = false;
             
             if($this->getCache()){
                 $acl = $this->getCache()->getItem($this->getCacheId());
+
+                if($acl){
+                    $cached = true;
+                }
             }
             
             if(!$acl){
@@ -46,27 +73,43 @@ abstract class AbstractAclService extends AbstractService
                 }
             }
             
+            if(!$cached && $this->getCache()){
+                $this->getCache()->setItem($this->getCacheId(), $acl);
+            }
+            
             $this->setAcl($acl);
         }
         
         return $this->acl;
     }
     
+    /**
+     * Set Acl instance
+     * 
+     * @param \Foaf\Acl\Acl $acl
+     */
     public function setAcl(Acl $acl)
     {
         $this->acl = $acl;
-        
-        if($this->getCache()){
-            $this->getCache()->setItem($this->getCacheId(), $acl);
-        }
     }
     
+    /**
+     * Flush (reload) ACL
+     * 
+     */
     public function flush()
     {
         $this->acl = null;
         $this->getCache()->removeItem($this->getCacheId());
     }
     
+    /**
+     * Test whether given role has privilege to resource(s) 
+     * 
+     * @param string $role
+     * @param string|array|null $resource
+     * @param string|null $privilege
+     */
 	public function isAllowed($role = null, $resource = null, $privilege = null)
 	{
 	 	return $this->getAcl()->isAllowed($role, $resource, $privilege);
@@ -89,23 +132,33 @@ abstract class AbstractAclService extends AbstractService
 	 * @return \Zend\Cache\Storage\Adapter
 	 */
 	public function getCache(){
-	    
 	    if(!$this->cache){
-	        $this->cache = $this->getServiceLocator()->get('FoafCache');
+	        $this->setCache($this->getServiceLocator()->get('FoafCache'));
 	    }
 	    
 	    return $this->cache;
 	}
 	
+	/**
+	 * Retrieve cache ID
+	 * 
+	 * @return string
+	 */
 	protected function getCacheId()
 	{
 	    if(!$this->cacheId){
-	        $this->cacheId = str_replace(array('\\', '/', '_'), '-', get_class($this));
+	        $this->cacheId = md5(str_replace(array('\\', '/', '_'), '-', get_class($this)));
 	    }
 	    
 	    return $this->cacheId;
 	}
 	
+	/**
+	 * Configure Acl
+	 * 
+	 * @param array|null $config
+	 * @return \Foaf\Acl\Acl
+	 */
 	protected function configureAcl($config = null)
 	{
 	    
@@ -149,6 +202,13 @@ abstract class AbstractAclService extends AbstractService
 	    return $acl;
 	}
 	
+	/**
+	 * Add rules
+	 * 
+	 * @param Acl $acl
+	 * @param unknown_type $type
+	 * @param unknown_type $rules
+	 */
 	private function addRules(Acl $acl, $type, $rules){
 	    foreach ($rules as $key => $specs) {
 	         
