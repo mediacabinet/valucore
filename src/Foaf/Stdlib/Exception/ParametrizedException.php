@@ -1,5 +1,5 @@
 <?php
-namespace Foaf\Exception;
+namespace Foaf\Stdlib\Exception;
 
 class ParametrizedException extends \Exception{
 	
