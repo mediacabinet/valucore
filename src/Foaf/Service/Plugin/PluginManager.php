@@ -17,6 +17,7 @@ class PluginManager extends AbstractPluginManager
     protected $invokableClasses = array(
         'acl'  => 'Foaf\Service\Plugin\Acl',
         'auth'  => 'Foaf\Service\Plugin\Auth',
+        'events'  => 'Foaf\Service\Plugin\Events',
     );
     
     /**
