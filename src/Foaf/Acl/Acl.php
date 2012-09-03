@@ -1,11 +1,12 @@
 <?php
 namespace Foaf\Acl;
 
-use Zend\Permissions\Acl\Acl as ZendAcl;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 
-class Acl extends ZendAcl implements ServiceLocatorAwareInterface
+class Acl 
+    extends \Zend\Permissions\Acl\Acl 
+    implements  ServiceLocatorAwareInterface
 {
 
     /**
@@ -24,4 +25,13 @@ class Acl extends ZendAcl implements ServiceLocatorAwareInterface
     {
         return $this->serviceLocator;
     }
+    
+    public function __sleep()
+    {
+        $vars = get_class_vars(get_class($this));
+        unset($vars['serviceLocator']);
+        
+        return array_keys($vars);
+    }
+
 }
