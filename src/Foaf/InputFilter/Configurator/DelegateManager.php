@@ -1,7 +1,7 @@
 <?php
-namespace Foaf\InputFilter\Repository;
+namespace Foaf\InputFilter\Configurator;
 
-use Foaf\InputFilter\Repository\Delegate\DelegateInterface;
+use Foaf\InputFilter\Configurator\Delegate\DelegateInterface;
 use Zend\ServiceManager\AbstractPluginManager;
 
 class DelegateManager extends AbstractPluginManager

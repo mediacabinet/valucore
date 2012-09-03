@@ -1,8 +1,8 @@
 <?php
-namespace Foaf\InputFilter\Repository\Delegate;
+namespace Foaf\InputFilter\Configurator\Delegate;
 
 use \ArrayObject;
-use Foaf\InputFilter\Repository;
+use Foaf\InputFilter\ConfiguratorInterface;
 use Zend\InputFilter\InputFilterInterface;
 
 class ConfigurationAggregate implements DelegateInterface
@@ -21,7 +21,7 @@ class ConfigurationAggregate implements DelegateInterface
         }
     }
 
-    public function getInputFilterSpecifications(Manager $manager, $name)
+    public function getInputFilterSpecifications(ConfiguratorInterface $configurator, $name)
     {
         $config = $this->getConfig();
         
@@ -33,10 +33,10 @@ class ConfigurationAggregate implements DelegateInterface
         }
     }
     
-    public function prepareInputFilterSpecifications(Manager $manager, $name, ArrayObject $specifications)
+    public function prepareInputFilterSpecifications(ConfiguratorInterface $configurator, $name, ArrayObject $specifications)
     {}
     
-    public function finalizeInputFilter(Manager $manager, $name, InputFilterInterface $inputFilter)
+    public function finalizeInputFilter(ConfiguratorInterface $configurator, $name, InputFilterInterface $inputFilter)
     {}
     
     public function getConfig()
