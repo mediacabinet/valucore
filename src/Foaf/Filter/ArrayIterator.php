@@ -1,9 +1,10 @@
 <?php
 namespace Foaf\Filter;
 
+use Zend\Filter\AbstractFilter;
 use Zend\Filter\FilterInterface;
 
-class ArrayIterator implements FilterInterface{
+class ArrayIterator extends AbstractFilter{
     
     /**
      * Filter chain
@@ -25,23 +26,11 @@ class ArrayIterator implements FilterInterface{
      */
     protected $removeEmpty = true;
     
-    public function __construct(array $filters, $options = null)
+    public function __construct(array $options)
     {
         $this->chain = new \Zend\Filter\FilterChain();
         
-        if ($options instanceof \Zend\Config\Config) {
-            $options = $options->toArray();
-        }
-        
-        if(!is_array($options)){
-            $options = array();
-        }
-
-        if(isset($options['remove_empty'])){
-            $this->setRemoveEmpty((bool) $options['remove_empty']);
-        }
-
-        $this->setFilters($filters);
+        $this->setOptions($options);
     }
     
     /**
