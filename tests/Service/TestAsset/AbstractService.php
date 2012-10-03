@@ -1,9 +1,9 @@
 <?php
-namespace Foaf\Test\Service\TestAsset;
+namespace Valu\Test\Service\TestAsset;
 
 /**
  * 
- * @foaf\service\ignore
+ * @valu\service\ignore
  */
 abstract class AbstractService
 {

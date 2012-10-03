@@ -1,5 +1,5 @@
 <?php
-namespace FoafCore;
+namespace ValuCore;
 
 use Zend\ModuleManager\Feature;
 
@@ -20,7 +20,7 @@ class Module
             ),
             'Zend\Loader\StandardAutoloader' => array(
                 'namespaces' => array(
-                    'Foaf' => __DIR__ . '/src/Foaf',
+                    'Valu' => __DIR__ . '/src/Valu',
                 ),
             ),
         );

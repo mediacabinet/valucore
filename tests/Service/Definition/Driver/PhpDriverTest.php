@@ -1,10 +1,10 @@
 <?php
-namespace Foaf\Test\Service\Definition\Driver;
+namespace Valu\Test\Service\Definition\Driver;
 
-use Foaf\Version\SoftwareVersion,
-	Foaf\Version\Exception\InvalidVersionException,
-	Foaf\Test\Service\TestAsset\MockService,
-	Foaf\Service\Definition\Driver\PhpDriver;
+use Valu\Version\SoftwareVersion,
+	Valu\Version\Exception\InvalidVersionException,
+	Valu\Test\Service\TestAsset\MockService,
+	Valu\Service\Definition\Driver\PhpDriver;
 
 class PhpDriverTest extends \PHPUnit_Framework_TestCase
 {

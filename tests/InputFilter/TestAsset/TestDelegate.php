@@ -1,9 +1,9 @@
 <?php
-namespace Foaf\Test\InputFilter\TestAsset;
+namespace Valu\Test\InputFilter\TestAsset;
 
-use Foaf\InputFilter\Configurator\Delegate\DelegateInterface;
+use Valu\InputFilter\Configurator\Delegate\DelegateInterface;
 use \ArrayObject;
-use Foaf\InputFilter\ConfiguratorInterface;
+use Valu\InputFilter\ConfiguratorInterface;
 use Zend\InputFilter\InputFilterInterface;
 
 class TestDelegate implements DelegateInterface

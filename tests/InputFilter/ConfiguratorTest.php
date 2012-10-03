@@ -1,18 +1,18 @@
 <?php
-namespace Foaf\Test\Acl;
+namespace Valu\Test\Acl;
 
-use Foaf\Test\InputFilter\TestAsset\TestDelegate;
+use Valu\Test\InputFilter\TestAsset\TestDelegate;
 
-use Foaf\InputFilter\Configurator\Delegate\ChildInputFilterDetector;
+use Valu\InputFilter\Configurator\Delegate\ChildInputFilterDetector;
 
-use Foaf\InputFilter\Configurator\Delegate\ParentInputFilterDetector;
+use Valu\InputFilter\Configurator\Delegate\ParentInputFilterDetector;
 
 use Zend\InputFilter\Input;
 
-use Foaf\InputFilter\InputFilter;
+use Valu\InputFilter\InputFilter;
 
-use Foaf\InputFilter\Configurator;
-use Foaf\InputFilter\Configurator\Delegate\ConfigurationAggregate;
+use Valu\InputFilter\Configurator;
+use Valu\InputFilter\Configurator\Delegate\ConfigurationAggregate;
 
 class ConfiguratorTest extends \PHPUnit_Framework_TestCase{
     
@@ -26,7 +26,7 @@ class ConfiguratorTest extends \PHPUnit_Framework_TestCase{
     
     public function testSetDefaultInputFilterClass()
     {
-        $class = 'Foaf\InputFilter\InputFilter';
+        $class = 'Valu\InputFilter\InputFilter';
         
         $configurator = new Configurator();
         $configurator->setDefaultInputFilterClass($class);
@@ -42,7 +42,7 @@ class ConfiguratorTest extends \PHPUnit_Framework_TestCase{
      */
     public function testSetInvalidDefaultInputFilterClass()
     {
-        $class = 'Foaf\InvalidInputFilter';
+        $class = 'Valu\InvalidInputFilter';
     
         $configurator = new Configurator();
         $configurator->setDefaultInputFilterClass($class);

@@ -1,9 +1,9 @@
 <?php
-namespace Foaf\Test\Service\TestAsset;
+namespace Valu\Test\Service\TestAsset;
 
-use Foaf\Service\ServiceInterface;
-use Foaf\Service\Definition\DriverInterface as DefinitionDriver;
-use Foaf\Service\ServiceEvent;
+use Valu\Service\ServiceInterface;
+use Valu\Service\Definition\DriverInterface as DefinitionDriver;
+use Valu\Service\ServiceEvent;
 
 /**
  * Mock service
@@ -22,21 +22,21 @@ class MockService extends AbstractService implements ServiceInterface
     /**
      * Set definition driver
      * 
-     * @foaf\service\ignore
+     * @valu\service\ignore
      */
     public function setDriver(DefinitionDriver $driver){
         $this->definitionDriver = $driver;
     }
     
     /**
-     * @foaf\service\ignore
+     * @valu\service\ignore
      */
     public function define(){
         return $this->definitionDriver->define(get_class($this));
     }
     
     /**
-     * @foaf\service\ignore
+     * @valu\service\ignore
      */
     public function setConfig($config)
     {}
@@ -59,7 +59,7 @@ class MockService extends AbstractService implements ServiceInterface
     }
     
     /**
-     * @foaf\service\ignore
+     * @valu\service\ignore
      */
     public function nonServiceMethod()
     {}

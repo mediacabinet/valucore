@@ -1,8 +1,8 @@
 <?php
-namespace Foaf\Test\Version;
+namespace Valu\Test\Version;
 
-use Foaf\Version\SoftwareVersion,
-	Foaf\Version\Exception\InvalidVersionException;
+use Valu\Version\SoftwareVersion,
+	Valu\Version\Exception\InvalidVersionException;
 
 class SoftwareVersionTest extends \PHPUnit_Framework_TestCase
 {
@@ -18,7 +18,7 @@ class SoftwareVersionTest extends \PHPUnit_Framework_TestCase
 	}
 	
 	/**
-	 * @expectedException \Foaf\Version\Exception\InvalidVersionException
+	 * @expectedException \Valu\Version\Exception\InvalidVersionException
 	 */
 	public function testSetInvalid(){
 	    $version = new SoftwareVersion('1-0');

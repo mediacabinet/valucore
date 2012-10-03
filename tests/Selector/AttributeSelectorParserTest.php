@@ -1,9 +1,14 @@
 <?php
-namespace FoafCore\Test\Acl;
+namespace ValuCore\Test\Acl;
 
-use Foaf\Selector\Parser\AttributeSelectorParser;
+use Valu\Selector\Parser\AttributeSelectorParser;
 
 class AttributeSelectorParserTest extends \PHPUnit_Framework_TestCase{
+    
+    public static function setUpBeforeClass()
+    {
+        setlocale(LC_NUMERIC, 'en_US');
+    }
     
     public function testAttributeOnly(){
         $selector = 'abc';

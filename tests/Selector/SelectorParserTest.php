@@ -1,11 +1,11 @@
 <?php
-namespace FoafCore\Test\Acl;
+namespace ValuCore\Test\Acl;
 
-use Foaf\Selector,
-    Foaf\Selector\SimpleSelector\AbstractSelector;
+use Valu\Selector,
+    Valu\Selector\SimpleSelector\AbstractSelector;
 
 class SelectorParserTest extends \PHPUnit_Framework_TestCase{
-    
+
     public function testUniversalSelector(){
         $this->assertSelectorName('*', AbstractSelector::SELECTOR_UNIVERSAL);
     }
@@ -52,8 +52,8 @@ class SelectorParserTest extends \PHPUnit_Framework_TestCase{
         $this->assertSelectorName('/path', $name);
         $this->assertSelector('/path');
     
-        $this->assertSelectorName('/path/to', $name);
-        $this->assertSelector('/path/to');
+        $this->assertSelectorName('/path/to.me', $name);
+        $this->assertSelector('/path/to.me');
     }
     
     public function testPseudoSelector(){
@@ -63,20 +63,33 @@ class SelectorParserTest extends \PHPUnit_Framework_TestCase{
         $this->assertSelector(':a');
     
         $this->assertSelectorName(':nth-child(1)', $name);
-        $this->assertSelector(':nth-child()');
+        $this->assertSelector(':nth-child()', ':nth-child');
         
         $this->assertSelectorName(':last-child', $name);
         $this->assertSelector(':last-child');
     }
     
-    public function testAttributeSelector(){
+    public function testSimpleAttributeSelector(){
         $name = AbstractSelector::SELECTOR_ATTRIBUTE;
-    
+        
         $this->assertSelectorName('[abc]', $name);
         $this->assertSelector('[abc]');
+    }
     
+    public function testPrefixAttributeSelector()
+    {
+        $name = AbstractSelector::SELECTOR_ATTRIBUTE;
+        
         $this->assertSelectorName('[abc^="1.002"]', $name);
         $this->assertSelector('[abc^="1.002"]');
+    }
+    
+    public function testGtAttributeSelector()
+    {
+        $name = AbstractSelector::SELECTOR_ATTRIBUTE;
+        
+        $this->assertSelectorName('[abc>"1.002"]', $name);
+        $this->assertSelector('[abc>"1.002"]');
     }
     
     public function testClassSequence(){
@@ -91,7 +104,7 @@ class SelectorParserTest extends \PHPUnit_Framework_TestCase{
             'abc' => AbstractSelector::SELECTOR_ELEMENT,
             '.abc' => AbstractSelector::SELECTOR_CLASS,
             '#def' => AbstractSelector::SELECTOR_ID,
-            ':ghi()' => AbstractSelector::SELECTOR_PSEUDO,
+            ':ghi' => AbstractSelector::SELECTOR_PSEUDO,
             '[yes="no"]' => AbstractSelector::SELECTOR_ATTRIBUTE,
         ));
     }
@@ -109,6 +122,18 @@ class SelectorParserTest extends \PHPUnit_Framework_TestCase{
     
     public function testChildSelector(){
         $this->assertSelector('article>comment');
+    }
+    
+    public function testChildSelectorWithAttribute(){
+        $this->assertSelector('article>[attr="value"]');
+    }
+    
+    public function testChildSelectorWithSpaces(){
+        $this->assertSelector('article > .class', 'article>.class');
+    }
+    
+    public function testChildSelectorWithParentAsAPath(){
+        $this->assertSelector('/article>.class');
     }
     
     public function testImmediateChildSelector(){
@@ -152,7 +177,15 @@ class SelectorParserTest extends \PHPUnit_Framework_TestCase{
     }
     
     public function testCompleteSelector(){
-        $this->assertSelector('* abc>#def+.ghi~[jkl="mno"]:pqr();');
+        $this->assertSelector('* abc>#def+.ghi~[jkl="mno"]:pqr');
+    }
+    
+    public function testCompleteSelectorWithPathAndChild(){
+        $this->assertSequencePath(array(
+            array('/test-path' => AbstractSelector::SELECTOR_PATH),
+            array('>' => Selector\Selector::COMBINATOR_CHILD),
+            array('[name="file.ext"]' => AbstractSelector::SELECTOR_ATTRIBUTE),
+        ));
     }
     
     /**
@@ -231,8 +264,10 @@ class SelectorParserTest extends \PHPUnit_Framework_TestCase{
         
         $selector = '';
         foreach($path as $key => $specs){
+            $keys = array_keys($specs);
+            
             if($key == 0 || $key % 2 == 0) $selector .= implode('', array_keys($specs));
-            else $selector .= array_pop(array_keys($specs));
+            else $selector .= array_pop($keys);
         }
         
         $selector = Selector\Parser\SelectorParser::parseSelector($selector);
