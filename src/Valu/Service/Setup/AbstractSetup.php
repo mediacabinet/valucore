@@ -1,6 +1,8 @@
 <?php
 namespace Valu\Service\Setup;
 
+use Valu\Service\Exception\MissingParameterException;
+
 use Valu\Service\AbstractService,
 	Valu\Service\Setup\Utils,
 	Valu\Service\Broker,
@@ -65,9 +67,18 @@ abstract class AbstractSetup
      * 
      * @param array $options Setup options
      */
-    public function install(array $options = array())
+    public function install($version = null, array $options = array())
     {
-        $this->installDependencies($options);
+        $module = $this->utils()->whichModule($this);
+        if ($version === null) {
+            $version = $this->utils()->getModuleVersion($module);
+            
+            if (!$version) {
+                throw new MissingParameterException('Parameter version is missing and cannot be autodetected');
+            }
+        }
+        
+        return $this->utils()->install($module, $version);
     }
     
     /**
@@ -110,40 +121,6 @@ abstract class AbstractSetup
 	 * the module settings by default.
 	 */
     public abstract function uninstall(array $options = array());
-    
-    /**
-     * Install module dependencies
-     *
-     * @return void
-     */
-    protected function installDependencies(array $options = array()){
-    	$deps = $this->utils()->resolveDependencies(
-    	    $this->getName()     
-    	);
-    	
-    	foreach($deps as $module => $version){
-    	    
-    	    $setupOpts = null;
-    	    
-    	    // provide options for own setup
-    	    if($module == $this->getName()){
-    	        $setupOpts = array('options' => $options);
-    	    }
-    	    
-    	    /**
-    	     * Download and setup module
-    	     */
-    		return $this->utils()->setup(
-    			$module,
-    			$version,
-    		    $setupOpts
-    		);
-    	}
-    	
-    	if(!$deps->offsetExists($this->getName())){
-    	    $this->triggerCallback('setup', array('options' => $options));
-    	}
-    }
     
     /**
      * (non-PHPdoc)

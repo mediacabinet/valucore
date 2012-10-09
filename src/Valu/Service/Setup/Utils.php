@@ -1,9 +1,11 @@
 <?php
 namespace Valu\Service\Setup;
 
-use Valu\Version\SoftwareVersion,
-	Valu\Service\Broker,
-	Valu\Service\Setup\Exception;
+use Valu\Version\SoftwareVersion;
+use Valu\Service\Broker;
+use Valu\Service\Setup\Exception;
+use DirectoryIterator;
+use FilesystemIterator;
 
 /**
  * Setup utilities
@@ -27,6 +29,20 @@ class Utils{
      */
     protected $options;
     
+    /**
+     * Module definitions
+     * 
+     * @var array
+     */
+    protected $definitions = array();
+    
+    /**
+     * Module dependencies
+     * 
+     * @var array
+     */
+    protected $deps = array();
+    
     public function __construct(Broker $broker, $config = null)
     {
         $this->setServiceBroker($broker);
@@ -37,135 +53,102 @@ class Utils{
     }
     
     /**
-     * Check whether a module directory exists in one of the
-     * module locations
-     * 
+     * Install module dependencies
+     *
+     * @return void
+     */
+    public function install($module, $version, array $options = array()){
+    
+        $fork    = false;
+        $modules = $this->findModules();
+        $current = array();
+    
+        foreach($modules as $name){
+            $modVersion = $this->getModuleVersion($name);
+            
+            if ($modVersion) {
+                $current[$name] = new SoftwareVersion(
+                    $this->getModuleVersion($name));
+            }
+        }
+    
+        // Download module and its dependencies
+        $fork = $this->download($module, $version);
+    
+        // Resolve deps
+        $deps = $this->resolveDependencies(
+            $module
+        );
+        
+        if (!$deps->offsetExists($module)) {
+            $deps->offsetSet($module, $version);
+        }
+        
+        // Setup all dependencies
+        foreach($deps as $depModule => $depVersion){
+    
+            $depVersion = new SoftwareVersion($depVersion);
+    
+            if(!$this->hasSetupService($depModule)){
+                continue;
+            }
+    
+            $setup = $this->initSetupService($depModule);
+            $args  = array();
+    
+            if (isset($current[$depModule])
+                && $current[$depModule]->isLt($depVersion)) {
+    
+                $operation = 'upgrade';
+                $args = array(
+                    'from' => $currentVersions[$depModule]
+                );
+            } else {
+                $operation = 'setup';
+                $args = array();
+            }
+    
+            if ($depModule == $module) {
+                $args['options'] = $options;
+            }
+             
+            // complete existing installation
+            if ($fork) {
+                $setup->fork(
+                    $operation,
+                    $args
+                );
+            } else {
+                $setup->exec(
+                    $operation,
+                    $args
+                );
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Upgrade module
+     *
      * @param string $module
+     * @param string $version
+     * @param array $options
      * @throws \Exception
-     * @return boolean
      */
-    public function moduleExists($module)
-    {
-        return $this->locateModule($module) !== false;
-    }
-    
-    /**
-     * Locate module file (phar) or directory
-     * 
-     * @param string $module
-     * @return string|boolean
-     */
-	public function locateModule($module)
-	{
-	    $dirs = $this->getOption('module_dirs');
-	     
-	    foreach($dirs as $dir){
-	        
-	        $file = $dir . DIRECTORY_SEPARATOR . $module;
-	        
-	    	if(file_exists($file)){
-	    		return $file;
-	    	}
-	    }
-	    
-	    return false;
-	}
-	
-	/**
-	 * Detect the name of the module for file system path
-	 * 
-	 * @param string $path Path in local file system
-	 * @return string|null Module name
-	 */
-	public function whichModule($path){
-	    $dirs = $this->getOption('module_dirs');
-	    
-	    foreach($dirs as $dir){
-	        if(strpos($path, $dir) === 0){
-	            $dir = substr($path, strlen($dir));
-	            $dir = ltrim($dir, DIRECTORY_SEPARATOR);
-	            
-	            $a = explode(DIRECTORY_SEPARATOR, $dir);
-	            return $a[0];
-	        }
-	    }
-	    
-	    return null;
-	}
-    
-	/**
-	 * Get current version for module
-	 * 
-	 * @param string pathule
-	 * @return string|null
-	 */
-    public function getModuleVersion($module)
-    {
-        $path = $this->locateModule($module);
-        
-        if($path){
-            
-            $definition = $path . DIRECTORY_SEPARATOR . $this->getOption('definition_file');
-            
-            /**
-             * Read version from definition file (e.g. definition.ini)
-             * from either module directory or PHAR archive
-             */
-            if(is_dir($path) && file_exists($definition)){
-            	$config = \Zend\Config\Factory::fromFile($definition);
-            	return $config['version'];
-            }
-            else if(is_file($path) && file_exists('phar://'.$definition)){
-                $config = \Zend\Config\Factory::fromFile('phar://'.$definition);
-                return $config['version'];
-            }
-            else{
-                return null;
-            }
-        }
-        else{
-            return null;
-        }
-    }
-    
-    /**
-     * Install module
-     *
-     * @param string $module	Module name
-     * @param string $version 	Version to install, if omitted,
-     * 							latest version is installed
-     * @param array	$options	Installer options
-     * @return boolean			True on success
-     */
-    public function install($module, $version, array $options = null){
-        return $this->downloadAndInstall($module, $version, $options, true);
-    }
-    
-    /**
-     * Setup module
-     *
-     * @param string $module	Module name
-     * @param string $version 	Version to install, if omitted,
-     * 							latest version is installed
-     * @param array	$options	Installer options
-     * @return boolean			True on success
-     */
-    public function setup($module, $version, array $options = null){
-        return $this->downloadAndInstall($module, $version, $options, false);
-    }
-    
     public function upgrade($module, $version, array $options = null){
-        
+    
         /**
          * Fetch previous version for module
          */
         $oldVersion = $this->getModuleVersion($module);
         $oldVersion = new SoftwareVersion($oldVersion);
-        
+    
         if($oldVersion->isLt($version)){
             throw new \Exception('Unable to upgrade to '.$version.' (version '.$oldVersion.' is already installed)');
         }
-        
+    
         return $this->install($module, $version, $options);
     }
     
@@ -183,31 +166,41 @@ class Utils{
     }
     
     /**
-     * Load (install) module files
+     * Download module and execute either installer or setup
      *
-     * @param string $module	Module name
-     * @param string $version 	Version to install, if omitted,
-     * 							latest version is installed
-     * @return boolean			True on success
+     * @param string $module
+     * @param string $version
+     * @return boolean        True if module or one of its dependencies was loaded
      */
-    public function loadModule($module, $version)
+    public function download($module, $version)
     {
-    	$dirs	= $this->getOption('module_dirs');
-    	$repos	= $this->getRepositoryQueue();
-    	$dir	= array_shift(array_values($dirs));
     
-    	while($repos->valid()){
+        $versionExists = false;
     
-    		$url = $repos->current();
+        /**
+         * Fetch previous version for module
+         */
+        $oldVersion = $this->getModuleVersion($module);
+         
+        /**
+         * Test if given or greater version is already installed
+        */
+        if($oldVersion){
+            $oldVersion = new SoftwareVersion($oldVersion);
+             
+            if($oldVersion->isGte($version)){
+                $versionExists = true;
+            }
+        }
+         
+        /**
+         * Load module files if necessary
+         */
+        if(!$versionExists){
+            throw new \Exception('Download not implemented');
+        }
     
-    		if($this->downloadArchive($url, $module, $version, $dir)){
-    			return true;
-    		}
-    
-    		$repos->next();
-    	}
-    
-    	return false;
+        return !$versionExists;
     }
     
     /**
@@ -257,7 +250,7 @@ class Utils{
         if($resolved->offsetExists($module) && SoftwareVersion::compare($resolved[$module], $version) <= 0){
             unset($resolved[$module]);
         }
-        
+
         return $resolved;
     }
     
@@ -271,181 +264,212 @@ class Utils{
      */
     protected function resolveDepsRecursive($module, $version, \ArrayObject $resolved){
     
-        // ask for deps, if setup available
-        if($this->hasSetupService($module)){
-            
-            $deps = $this->initSetupService($module)->exec(
-                'getDependencies'
-            )->first();
-        
-            foreach ($deps as $name => $specs){
-        
-                // make sure the same module doesn't get resolved again
-                if(!$resolved->offsetExists($name)){
-                    $this->resolveDepsRecursive($name, $specs['version'], $resolved);
-                }
-            }
-        }
-    
         // replace if exists with lower version number
         if($resolved->offsetExists($module)){
             $new = new SoftwareVersion($version);
-    
+        
             // remember the greatest versions
             if($new->isGt($resolved[$module])){
+                unset($resolved[$module]);
                 $resolved[$module] = $version;
             }
-        }
-        // append if doesn't exist
-        else{
+        } else{
             $resolved[$module] = $version;
         }
+        
+        // ask for deps
+        $deps = $this->getModuleDeps($module);
+        
+        if (array_key_exists($module, $deps)) {
+            throw new \Exception(
+                sprintf('Invalid dependency for module %s: dependency cannot point to self', $module));
+        }
     
-        return $resolved;
+        foreach ($deps as $name => $depVersion){
+    
+            // make sure the same module doesn't get resolved again
+            if(!$resolved->offsetExists($name)){
+                $this->resolveDepsRecursive($name, $depVersion, $resolved);
+            }
+        }
+        
+        if ($resolved[$module] == $version) {
+            unset($resolved[$module]);
+            $resolved[$module] = $version;
+        }
     }
     
     /**
-     * Download module and execute either installer or setup
-     * 
+     * Check whether a module directory exists in one of the
+     * module locations
+     *
      * @param string $module
-     * @param string $version
-     * @param array $options
-     * @param boolean $fullInstall Set true to execute module installer
+     * @throws \Exception
      * @return boolean
      */
-    public function downloadAndInstall($module, $version, array $options = null, $fullInstall = true){
-    
-        $loaded = false;
-    
-        /**
-         * Fetch previous version for module
-         */
-        $oldVersion = $this->getModuleVersion($module);
-         
-        /**
-         * Test if given or greater version is already installed
-         */
-        if($oldVersion){
-            $oldVersion = new SoftwareVersion($oldVersion);
-            	
-            if($oldVersion->isGte($version)){
-                $loaded = true;
-            }
-        }
-         
-        /**
-         * Load module files if necessary
-         */
-        if(!$loaded){
-            $this->loadModule($module, $version);
-        }
-         
-        /**
-         * Execute module specific setup
-         */
-        if($this->hasSetupService($module)){
-            	
-            $setupArgs = array(
-                    'options' => $options
-            );
-            	
-            $setup = $this->initSetupService($module);
-            	
-            // complete existing installation
-            if($loaded){
-                $setup->exec(
-                    $fullInstall ? 'install' : 'setup',
-                    $setupArgs
-                );
-            }
-            // install as new
-            elseif($oldVersion === null){
-                $setup->fork(
-                    $fullInstall ? 'install' : 'setup',
-                    $setupArgs
-                );
-            }
-            // upgrade
-            else{
-                $setup->fork(
-                    'upgrade',
-                    array('from' => $oldVersion, 'options' => $options)
-                );
-            }
-        }
-         
-        return true;
+    public function moduleExists($module)
+    {
+        return $this->locateModule($module) !== false;
     }
     
     /**
-     * Download archive file from URL and install to local 
-     * directory
-     * 
-     * @param string $url
-     * @param string $module
-     * @param string $version
-     * @param string $destination
+     * Find all modules installed in module directories
+     *
+     * @return array
      */
-    protected function downloadArchive($url, $module, $version, $destination){
-        
-        $uri = new \Zend\Uri\Http($url);
-        $uri->setQuery(array('module' => $module, 'version' => $version));
-        
-        $client = new \Zend\Http\Client($uri);
-        $client->setAdapter('Zend\Http\Client\Adapter\Curl');
-        $client->send();
-        
-        $response = $client->getResponse();
-        
-        if($response->getStatusCode() == \Zend\Http\Response::STATUS_CODE_200){
-            
-            $path = $destination . DIRECTORY_SEPARATOR . $module;
-            $file = $path . '.phar';
-            
-            /**
-             * Write response to a temporary file
-             */
-            $tmpFile = tempnam(sys_get_temp_dir(), 'zfse-module-');
-            file_put_contents($tmpFile, $response->getBody());
-            
-            /**
-             * Construct a new Phar instance from the temporary file
-             */
-            $phar = new \Phar($tmpFile);
-            
-            /**
-             * Remove existing module files
-             */
-            $this->removeModuleFiles($module);
-            
-            // extract and remove temporary file
-            if($this->getOption('extract_phars')){
-                
-                if(!is_writable(dirname($path))){
-                	throw new Exception\ModuleFolderNotWritableException(
-                		'Unable to copy module files to path '.$path
-                	);
+    public function findModules()
+    {
+        $dirs    = $this->getOption('module_dirs');
+        $modules = array();
+    
+        foreach($dirs as $dir){
+            $iterator = new DirectoryIterator($dir);
+    
+            foreach ($iterator as $file) {
+                if (($file->isDir() && substr($file->getBasename(), 0, 1) !== '.') 
+                    || ($file->isFile() && $file->getExtension() == 'phar')) {
+                    
+                    $modules[$file->getRealPath()] = $file->getBasename();
                 }
-                
-            	$phar->extractTo($path);
-            	unlink($tmpFile);
             }
-            // move temporary phar file in place
-            else{
-                if(!is_writable(dirname($file))){
-                	throw new Exception\ModuleFolderNotWritableException(
-                		'Unable to copy PHAR archive to path '.$path
-                	);
+        }
+    
+        return $modules;
+    }
+    
+    /**
+     * Locate module file (phar) or directory
+     *
+     * @param string $module
+     * @return string|boolean
+     */
+    public function locateModule($module)
+    {
+        $dirs = $this->getOption('module_dirs');
+    
+        foreach($dirs as $dir){
+             
+            $file = $dir . DIRECTORY_SEPARATOR . $module;
+             
+            if(file_exists($file)){
+                return $file;
+            }
+        }
+         
+        return false;
+    }
+    
+    /**
+     * Detect the name of the module for file system path
+     *
+     * @param object $object Setup instance
+     * @return string|null Module name
+     */
+    public function whichModule($object){
+        $reflection = new \ReflectionClass($object);
+        $path = $reflection->getFileName();
+        
+        $dirs = $this->getOption('module_dirs');
+         
+        foreach($dirs as $dir){
+            $dir = realpath($dir);
+             
+            if(strpos($path, $dir) === 0){
+                $dir = substr($path, strlen($dir));
+                $dir = ltrim($dir, DIRECTORY_SEPARATOR);
+                 
+                $a = explode(DIRECTORY_SEPARATOR, $dir);
+                return $a[0];
+            }
+        }
+         
+        return null;
+    }
+    
+    /**
+     * Get current version for module
+     *
+     * @param string pathule
+     * @return string|null
+     */
+    public function getModuleVersion($module)
+    {
+        $config = $this->getModuleDefinition($module);
+    
+        if (isset($config['version'])) {
+            return $config['version'];
+        } else {
+            return null;
+        }
+    }
+    
+    /**
+     * Get module definition as an array
+     *
+     * @param string $module
+     * @return array
+     */
+    public function getModuleDefinition($module)
+    {
+        if (!array_key_exists($module, $this->definitions)) {
+            $path = $this->locateModule($module);
+            $config = array();
+    
+            if($path){
+    
+                $definition = $path . DIRECTORY_SEPARATOR . $this->getOption('definition_file');
+    
+                /**
+                 * Read version from definition file (e.g. definition.ini)
+                 * from either module directory or PHAR archive
+                */
+                if(is_dir($path) && file_exists($definition)){
+                    $config = \Zend\Config\Factory::fromFile($definition);
+                } else if(is_file($path) && file_exists('phar://'.$definition)){
+                    $config = \Zend\Config\Factory::fromFile('phar://'.$definition);
                 }
-                
-                rename($tmpFile, $file);
+            }
+    
+            $this->definitions[$module] = $config;
+        }
+    
+        return $this->definitions[$module];
+    }
+    
+    /**
+     * Retrieve list of module dependencies
+     *
+     * @param string $module
+     * @return array
+     */
+    public function getModuleDeps($module)
+    {
+        if (!isset($this->deps[$module])) {
+            $map     = array();
+            $deps    = array();
+            $modules = $this->findModules();
+    
+            foreach ($modules as $name) {
+                $config     = $this->getModuleDefinition($name);
+                $map[$name] = isset($config['name']) ? $config['name'] : null;
+            }
+    
+            $config = $this->getModuleDefinition($module);
+    
+            if (isset($config['require-dev'])) {
+                foreach ($config['require-dev'] as $composerName => $composerVersion) {
+                    $moduleName = array_search($composerName, $map);
+    
+                    if ($moduleName !== false) {
+                        $deps[$moduleName] = ltrim($composerVersion, '<>=');
+                    }
+                }
             }
 
-        	return true;
+            $this->deps[$module] = $deps;
         }
-        else{
-            return false;
-        }
+    
+        return $this->deps[$module];
     }
     
     /**
@@ -522,14 +546,12 @@ class Utils{
     }
     
     public function initSetupService($module){
-        
-        $moduleSetup = $module . 'Setup';  
-        
+        $moduleSetup = $module . '.Setup';  
         return $this->getServiceBroker()->service($moduleSetup);
     }
     
     public function hasSetupService($module){
-        $moduleSetup = $module . 'Setup';
+        $moduleSetup = $module . '.Setup';
         return $this->getServiceBroker()->exists($moduleSetup);
     }
     
