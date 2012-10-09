@@ -36,6 +36,13 @@ class SelectorParserTest extends \PHPUnit_Framework_TestCase{
         $this->assertSelector('#ab');
     }
     
+    public function testRoleSelector(){
+        $name = AbstractSelector::SELECTOR_ROLE;
+    
+        $this->assertSelectorName('$role', $name);
+        $this->assertSelector('$role');
+    }
+    
     public function testClassSelector(){
         $name = AbstractSelector::SELECTOR_CLASS;
         
