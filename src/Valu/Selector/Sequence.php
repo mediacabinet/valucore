@@ -82,7 +82,7 @@ class Sequence implements \Iterator
      */
     public function isUniversal()
     {
-        return ($this->items[0] instanceof Universal);
+        return (!($this->items[0] instanceof Element));
     }
 
     /**
