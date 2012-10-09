@@ -118,7 +118,7 @@ class Auth extends AbstractPlugin
     {
         $identity = $this->auth()->until('is_array')->exec('getIdentity')->last();
         
-        if ($identity['id'] !== $this->id) {
+        if (isset($identity['id']) && $identity['id'] !== $this->id) {
             $this->reset();
             $this->id = $identity['id'];
         }
