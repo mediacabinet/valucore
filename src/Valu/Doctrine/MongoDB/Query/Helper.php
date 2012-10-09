@@ -193,7 +193,7 @@ class Helper
         } else {
             $definition = SelectorParser::parseSelector($selector);
         }
-        
+
         $selector = new Selector(
             $definition, 
             $this->repository->getDocumentManager(), 
@@ -240,8 +240,7 @@ class Helper
                 return $documents;
             } else {
                 return array(
-                    $this->repository->getDocumentName() =>
-                        $this->repository->getClassName()
+                    $this->repository->getClassName()
                 );
             }
         } else {
@@ -321,13 +320,15 @@ class Helper
                 }
         
                 if ($mode == self::FIND_MANY) {
-                    return $qb->getQuery()
+                    $result = $qb->getQuery()
                     ->execute();
                 } else {
                     $qb->limit(1);
-                    return $qb->getQuery()
+                    $result = $qb->getQuery()
                         ->getSingleResult();
                 }
+                
+                return $this->prepareResult($result, $fields, $mode);
             }
              
         } else {
@@ -379,11 +380,13 @@ class Helper
         }
     
         if ($mode == self::FIND_MANY) {
-            return $qb->getQuery()->execute();
+            $result = $qb->getQuery()->execute();
         } else {
             $qb->limit(1);
-            return $qb->getQuery()->getSingleResult();
+            $result = $qb->getQuery()->getSingleResult();
         }
+        
+        return $this->prepareResult($result, $fields, $mode);
     }
     
     /**
@@ -404,12 +407,14 @@ class Helper
         
         if ($mode == self::FIND_ONE) {
             $qb->limit(1);
-            return $qb->getQuery()
+            $result = $qb->getQuery()
                 ->getSingleResult();
         } else {
-            return $qb->getQuery()
+            $result = $qb->getQuery()
                 ->execute();
         }
+        
+        return $this->prepareResult($result, $fields, $mode);
     }
     
     /**
@@ -430,6 +435,46 @@ class Helper
                 call_user_func_array(array($queryBuilder, 'select'), $fields);
             }
         }
+    }
+    
+    /**
+     * Prepares query result
+     * 
+     * @param array|\Doctrine\ODM\MongoDB\Cursor $result
+     * @param null|string|array $fields
+     * @param int $mode
+     * @return string|array|\Doctrine\ODM\MongoDB\Cursor
+     */
+    private function prepareResult($result, $fields, $mode)
+    {
+        if (!$result) {
+            return $result;
+        }
+        
+        if (is_string($fields)) {
+            
+            $fields = explode('.', $fields);
+            $fields = array_pop($fields);
+            
+            if ($fields == 'id') {
+                $fields = '_id';
+            }
+            
+            if ($mode == self::FIND_ONE) {
+                return array_key_exists($fields, $result)
+                    ? $result[$fields] : null;
+            } else {
+                $filtered = array();
+                
+                foreach ($result as $data) {
+                    $filtered[] = $data[$fields];    
+                }
+                
+                return $filtered;
+            }
+        }
+        
+        return $result;
     }
     
     /**
