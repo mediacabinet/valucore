@@ -58,6 +58,11 @@ class DocumentManagerFactory implements FactoryInterface
          */
         $appConfig = $config['doctrine']['mongodb'];
         
+        // Make proxy dir if it is missing
+        if (!is_dir($appConfig['proxy_dir'])) {
+            mkdir($appConfig['proxy_dir'], 0777, true);
+        }
+        
         $odmConfig = new MongoDbConfig;
         $odmConfig->setProxyDir($appConfig['proxy_dir']);
         $odmConfig->setProxyNamespace($appConfig['proxy_ns']);
