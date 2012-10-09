@@ -14,7 +14,8 @@ class Role extends Attribute
     }
     
     public function getPattern(){
-        return array_pop(self::getEnclosure()) . $this->getCondition();
+        $enclosure = self::getEnclosure();
+        return array_pop($enclosure) . $this->getCondition();
     }
     
     public static function getEnclosure()
