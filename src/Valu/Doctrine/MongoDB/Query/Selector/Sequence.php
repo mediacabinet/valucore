@@ -7,6 +7,7 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Valu\Selector\Sequence as SequenceDefinition;
 use Valu\Selector\SimpleSelector;
 use Valu\Selector\SimpleSelector\SimpleSelectorInterface;
+use Valu\Selector\SimpleSelector\Universal;
 use Valu\Doctrine\MongoDB\Query\Selector\Template;
 use Valu\Doctrine\MongoDB\Query\Selector\Sequence\Delegate as SequenceDelegate;
 
@@ -115,7 +116,9 @@ class Sequence
             $elements = array_keys($this->getDocumentNames());
             
             // Remove universal selector
-            array_shift($items);
+            if ($this->sequence->getItem(0) instanceof Universal) {
+                array_shift($items);
+            }
         }
         /**
          * Use the current element name
