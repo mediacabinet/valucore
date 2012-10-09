@@ -12,7 +12,7 @@ class SetupUtilsFactory implements FactoryInterface
     {
         $broker = $serviceLocator->get('ServiceBroker');
         $config = $serviceLocator->get('Configuration');
-        $services = $config['setup_utils'] ?: array();
+        $config = $config['setup_utils'] ?: array();
         
         $utils = new Utils(
             $broker,
