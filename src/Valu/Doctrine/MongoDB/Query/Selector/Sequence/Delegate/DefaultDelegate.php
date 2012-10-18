@@ -484,7 +484,7 @@ class DefaultDelegate implements DelegateInterface
         
         if (!isset($names[$element])) {
             throw new \Exception(
-                sprintf('Unknown element %s', $element));
+                sprintf('Unknown document %s', $element));
         }
         
         $className = $names[$element];
