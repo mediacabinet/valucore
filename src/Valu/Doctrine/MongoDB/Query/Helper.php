@@ -363,8 +363,16 @@ class Helper
         $qb = $this->repository->createQueryBuilder();
         $this->applyFields($qb, $fields);
         
-        $query = $this->getUow()->getDocumentPersister($this->getDocumentName())->prepareQuery($query);
-        $qb->setQueryArray($query);
+        foreach ($this->getDocumentNames() as $document) {
+            $documentQuery = $this->getUow()
+                ->getDocumentPersister($document)
+                ->prepareQuery($query);
+            
+            $expr = $qb->expr();
+            $expr->setQuery($documentQuery);
+            
+            $qb->addOr($expr);
+        }
     
         // Apply internal commands
         if (null !== $args['sort']) {
