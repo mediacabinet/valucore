@@ -205,6 +205,24 @@ class Helper
     }
     
     /**
+     * Test whether given query parameter represents
+     * an empty query
+     * 
+     * @param mixed $query
+     * @return boolean
+     */
+    public function isEmptyQueryParam($query)
+    {
+        if (is_string($query)) {
+            return trim($query) == '';
+        } elseif (is_array($query)) {
+            return sizeof($query) == 0;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
      * Retrieve selector options
      * 
      * @return array
