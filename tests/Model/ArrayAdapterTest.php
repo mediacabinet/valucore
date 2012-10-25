@@ -52,13 +52,41 @@ class ArrayAdapterTest extends \PHPUnit_Framework_TestCase
         );
     }
     
+    public function testFromArrayWithChildProperty()
+    {
+        $adapter = new ArrayAdapter();
+        MockModel::$arrayAdapter = $adapter;
+        
+        $data = array(
+            'id'   => 'Child ID',
+            'name' => 'Child name'
+        );
+        
+        $newName = 'Child name changed';
+        
+        $child = $this->newMock($data);
+        $model = $this->newMock(array('child' => $child));
+        
+        $adapter->fromArray($model, array('child' => array('name' => $newName)) );
+        
+        $data['name'] = $newName;
+
+        $this->assertEquals(
+            $data,
+            array(
+                'id' => $child->id,
+                'name' => $child->name        
+            )
+        );
+    }
+    
     public function testToArrayWithArrayRecursionDelegate()
     {
         $data = array(
             'meta' => array('data'=>'metadata', 'keywords'=>'kw'),
         );
-        
-        $model    = $this->newMock($data);
+
+        $model = $this->newMock($data);
         
         $adapter = new ArrayAdapter();
         $adapter->getDelegates()->insert(

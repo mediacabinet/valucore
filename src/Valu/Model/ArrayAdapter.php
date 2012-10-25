@@ -1,8 +1,8 @@
 <?php
 namespace Valu\Model;
 
+use Valu\Model\ArrayAdapter\ProviderInterface;
 use Zend\Stdlib\PriorityQueue;
-
 use Zend\Cache\Storage\StorageInterface;
 
 class ArrayAdapter
@@ -49,11 +49,30 @@ class ArrayAdapter
         
         $definition = $this->getClassDefinition(get_class($object));
         $setters = $definition['setters'];
+        $getters = $definition['getters'];
         
         if (sizeof($specs)) {
             foreach ($specs as $spec => $value) {
                 
                 $method = isset($setters[$spec]) ? $setters[$spec] : null;
+                
+                // If array provided and target is an object
+                if (is_array($value) && isset($getters[$spec])) {
+                    
+                    $getter       = $getters[$spec];
+                    $currentValue = $object->{$getter}();
+                    
+                    if (is_object($currentValue)) {
+                        if ($currentValue instanceof ProviderInterface) {
+                            $currentValue->getArrayAdapter()->
+                                fromArray($currentValue, $value, $options);
+                        } else {
+                            $this->fromArray($currentValue, $value, $options);
+                        }
+                        
+                        continue; // Skip to next
+                    }
+                } 
                 
                 if ($method) {
                     $object->{$method}($value);
