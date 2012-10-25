@@ -23,7 +23,7 @@ class ObjectRecursionDelegate implements DelegateInterface
             if (is_object($value)
                 && $this->isInValidNamespace($object, $value)) {
                 
-                if ($fetch[$key] == true) {
+                if ($fetch[$key] === true) {
                     $fetch[$key] = null;
                 }
                 
