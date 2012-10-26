@@ -285,6 +285,8 @@ class Broker{
 	
 	protected function exec($untilFlag, $context, $service, $operation, $argv = array(), $callback = null){
 	    
+	    $exception = null;
+	    
 	    if(!$this->exists($service)){
 	        throw new ServiceNotFoundException(sprintf('Service "%s" not found', $service));
 	    }
@@ -323,16 +325,20 @@ class Broker{
 		}
 		
 		// Trigger actual service event
-		if($untilFlag){
-			$responses = $this->serviceEventManager->triggerUntil(
-				$event,
-				$callback
-			);
-		}
-		else{
-			$responses = $this->serviceEventManager->trigger(
-				$event
-			);
+		try{
+    		if($untilFlag){
+    			$responses = $this->serviceEventManager->triggerUntil(
+    				$event,
+    				$callback
+    			);
+    		}
+    		else{
+    			$responses = $this->serviceEventManager->trigger(
+    				$event
+    			);
+    		}
+		} catch(\Exception $exception) {
+		    $event->setException($exception);
 		}
 		
 		// Prepare and trigger final.<service>.<operation> event
@@ -343,6 +349,14 @@ class Broker{
 		    $e->setName($finalEvent);
 		    
 		    $this->trigger($e);
+		    
+		    // Listeners have a chance to clear the exception
+		    $exception = $e->getException();
+		}
+		
+		// Throw exception if it still exists
+		if ($exception) {
+		    throw $exception;
 		}
 		
 		return $responses;

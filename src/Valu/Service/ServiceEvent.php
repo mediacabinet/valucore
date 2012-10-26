@@ -1,57 +1,123 @@
 <?php
 namespace Valu\Service;
-
 use Zend\EventManager\Event;
 
-class ServiceEvent extends Event{
-    
+class ServiceEvent extends Event
+{
+
     /**
      * Service service
-     * 
+     *
      * @var string
      */
     protected $service;
-    
+
     /**
      * Operation
-     * 
+     *
      * @var string
      */
     protected $operation;
     
-	/**
-	 * @return string
-	 */
-	public function getService() {
-		return $this->service;
-	}
+    /**
+     * Service context
+     * 
+     * @var string
+     */
+    protected $context;
 
-	/**
-	 * @return string
-	 */
-	public function getOperation() {
-		return $this->operation;
-	}
+    /**
+     * Exception
+     *
+     * @var \Exception
+     */
+    protected $exception;
 
-	/**
-	 * @param string servicee
-	 */
-	public function setService($service) {
-		$this->service = $service;
-	}
+    /**
+     * Retrieve the name of the service
+     * 
+     * @return string
+     */
+    public function getService()
+    {
+        return $this->service;
+    }
 
-	/**
-	 * @param string $operation
-	 */
-	public function setOperation($operation) {
-		$this->operation = $operation;
-	}
-	
-	public function getContext(){
-	    return $this->getTarget();
-	}
-	
-	public function setContext($context){
-	    return $this->setTarget($context);
-	}
+    /**
+     * Set the name of the service
+     * 
+     * @param string
+     * @return ServiceEvent
+     */
+    public function setService($service)
+    {
+        $this->service = $service;
+        return $this;
+    }
+    
+    /**
+     * Retrieve the name of the operation
+     * 
+     * @return string
+     */
+    public function getOperation()
+    {
+        return $this->operation;
+    }
+
+    /**
+     * Set the name of the operation
+     * 
+     * @param string
+     * @return ServiceEvent      
+     */
+    public function setOperation($operation)
+    {
+        $this->operation = $operation;
+        return $this;
+    }
+
+    /**
+     * Retrieve current exception, if any
+     * 
+     * @return \Exception
+     */
+    public function getException()
+    {
+        return $this->exception;
+    }
+
+    /**
+     * Set current exception
+     * 
+     * @param \ExceptionÊ $exception
+     * @return ServiceEvent
+     */
+    public function setException(\ExceptionÊ $exception)
+    {
+        $this->exception = $exception;
+        return $this;
+    }
+
+    /**
+     * Retrieve current service context
+     * 
+     * @return string
+     */
+    public function getContext()
+    {
+        return $this->context;
+    }
+
+    /**
+     * Set current service context
+     * 
+     * @param unknown_type $context
+     * @return ServiceEvent
+     */
+    public function setContext($context)
+    {
+        $this->context = $context;
+        return $this;
+    }
 }
