@@ -302,7 +302,7 @@ class Broker{
 	        $name
 		);
 		
-		// Prepare and trigger init.<ServiceName>.<operationName> event
+		// Prepare and trigger init.<service>.<operation> event
 		$initEvent = strtolower('init.'.$service.'.'.$operation);
 		if(!$this->getEventManager()->getListeners($initEvent)->isEmpty()){
 		    $e = clone $event;
@@ -335,7 +335,7 @@ class Broker{
 			);
 		}
 		
-		// Prepare and trigger final.<ServiceName>.<operationName> event
+		// Prepare and trigger final.<service>.<operation> event
 		$finalEvent = strtolower('final.'.$service.'.'.$operation);
 		if(!$this->getEventManager()->getListeners($finalEvent)->isEmpty()){
 		    
