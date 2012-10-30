@@ -93,7 +93,7 @@ class ServiceEvent extends Event
      * @param \ExceptionÊ $exception
      * @return ServiceEvent
      */
-    public function setException(\ExceptionÊ $exception)
+    public function setException(\Exception $exception)
     {
         $this->exception = $exception;
         return $this;
