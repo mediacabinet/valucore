@@ -13,9 +13,33 @@ class Auth extends AbstractPlugin
      */
     const ROOT = '/';
     
-    private $id = null;
+    /**
+     * Superuser role name
+     * 
+     * @var string
+     */
+    const ROLE_SUPERUSER = 'superuser';
     
+    /**
+     * Roles associated with current user
+     * 
+     * @var array
+     */
     private $roles = null;
+    
+    /**
+     * Full identity information
+     * 
+     * @var array
+     */
+    private $identity = null;
+    
+    /**
+     * Group IDs
+     * 
+     * @var array
+     */
+    private $groups = null;
     
     /**
      * Retrieve universal role for current user in given ACL
@@ -43,13 +67,13 @@ class Auth extends AbstractPlugin
      */
     public function getAclRole($ns = self::ROOT)
     {
-
         $roles = $this->getAclRoles();
         $path  = explode('/', $ns);
         
         while(sizeof($path)){
             if (isset($roles[$ns])) {
-                return array_shift($roles[$ns]);   
+                return is_array($roles[$ns]) 
+                    ? array_shift($roles[$ns]) : $roles[$ns];   
             }
 
             array_pop($path); // remove last empty item (trailing slash)
@@ -70,8 +94,13 @@ class Auth extends AbstractPlugin
     public function getAclRoles()
     {
         if (!$this->roles) {
-            $this->roles = $this->getServiceBroker()
-                ->service('Acl.Role')->find($this->getId(), '/*');
+            $this->roles = $this->getIdentity('roles');
+            
+            if (!$this->roles) {
+                $this->roles = $this->getServiceBroker()
+                    ->service('Acl.Role')->find($this->getId(), '/*');
+            }
+            
         }
         
         return $this->roles;
@@ -99,6 +128,26 @@ class Auth extends AbstractPlugin
     }
     
     /**
+     * Retrieve all user's group memberships
+     * 
+     * @return array
+     */
+    public function getGroups()
+    {
+        if ($this->groups === null) {
+            $this->groups = $this->getIdentity('groups');
+            
+            if (!$this->groups) {
+                $this->groups = $this->getServiceBroker()
+                    ->service('Group')
+                    ->getMemberships($this->getId());
+            }
+        }
+        
+        return $this->groups;
+    }
+    
+    /**
      * Retrieve authenticated user's ID
      *
      * @return string
@@ -116,26 +165,40 @@ class Auth extends AbstractPlugin
      */
     public function getIdentity($spec = null)
     {
-        $identity = $this->auth()->until('is_array')->exec('getIdentity')->last();
-        
-        if (isset($identity['id']) && $identity['id'] !== $this->id) {
-            $this->reset();
-            $this->id = $identity['id'];
+        // Assume that identity doesn't change in the middle of process
+        if (!$this->identity) {
+            $this->identity = $this->auth()
+                ->until('is_array')->exec('getIdentity')->last();
         }
         
-        if(!$identity){
+        if(!is_array($this->identity)){
             throw new \Exception('User identity not found');
         }
-        
+
         if($spec !== null){
-            return isset($identity[$spec])
-                ? $identity[$spec]
+            return isset($this->identity[$spec])
+                ? $this->identity[$spec]
                 : null;
         }
         else{
-            return $identity;
+            return $this->identity;
         }
 
+    }
+    
+    /**
+     * Test whether current user is a superuser
+     */
+    public function isSuperuser()
+    {
+        return $this->getAclRole() == self::ROLE_SUPERUSER;
+    }
+    
+    public function reset()
+    {
+        $this->groups = null;
+        $this->identity = null;
+        $this->roles = null;
     }
 
     /**
@@ -158,10 +221,5 @@ class Auth extends AbstractPlugin
     public function __call($method, array $params)
     {
         return $this->auth()->exec($method, $params)->first();
-    }
-    
-    private function reset()
-    {
-        $this->roles = null;
     }
 }
