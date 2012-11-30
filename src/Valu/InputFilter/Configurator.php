@@ -255,12 +255,65 @@ class Configurator implements ConfiguratorInterface
     {
         $this->factory = $factory;
     }
+    
+    /**
+     * Retrieve all references or named input filter
+     * references
+     *
+     * @param string $name
+     * @return array
+     */
+    public function getReferences($name = null)
+    {
+        if (!$this->references
+                && $this->getCache()) {
+    
+            $this->references = $this->getCache()->getItem(
+                    $this->getCacheId('references')
+            );
+    
+            if (! is_array($this->references)) {
+                $this->references = array();
+            }
+        } else
+            if (! $this->references) {
+            $this->references = array();
+        }
+    
+        if ($name) {
+            return isset($this->references[$name]) ? $this->references[$name] : array();
+        } else {
+            return $this->references;
+        }
+    }
+    
+    /**
+     * Set cache
+     *
+     * @param \Zend\Cache\Storage\StorageInterface $cache
+     * @return Acl
+     */
+    public function setCache(StorageInterface $cache)
+    {
+        $this->cache = $cache;
+        return $this;
+    }
+    
+    /**
+     * Retrieve cache
+     *
+     * @return \Zend\Cache\Storage\StorageInterface
+     */
+    public function getCache()
+    {
+        return $this->cache;
+    }
 
     /**
      * Retrieve input filter specifications
      *
      * @param string $name            
-     * @param arrayÊ $delegates            
+     * @param array $delegates            
      * @return array
      */
     protected function internalGetSpecifications($name, array $delegates, 
@@ -424,37 +477,6 @@ class Configurator implements ConfiguratorInterface
     }
 
     /**
-     * Retrieve all references or named input filter
-     * references
-     *
-     * @param string $name            
-     * @return array
-     */
-    protected function getReferences($name = null)
-    {
-        if (!$this->references 
-            && $this->getCache()) {
-            
-            $this->references = $this->getCache()->getItem(
-                $this->getCacheId('references')
-            );
-            
-            if (! is_array($this->references)) {
-                $this->references = array();
-            }
-        } else 
-            if (! $this->references) {
-                $this->references = array();
-            }
-        
-        if ($name) {
-            return isset($this->references[$name]) ? $this->references[$name] : array();
-        } else {
-            return $this->references;
-        }
-    }
-
-    /**
      * Cache current references (only when changed)
      */
     protected function cacheReferences()
@@ -465,28 +487,6 @@ class Configurator implements ConfiguratorInterface
                 $this->references
             );
         }
-    }
-
-    /**
-     * Set cache
-     *
-     * @param \Zend\Cache\Storage\StorageInterface $cache            
-     * @return Acl
-     */
-    public function setCache(StorageInterface $cache)
-    {
-        $this->cache = $cache;
-        return $this;
-    }
-
-    /**
-     * Retrieve cache
-     *
-     * @return \Zend\Cache\Storage\StorageInterface
-     */
-    public function getCache()
-    {
-        return $this->cache;
     }
 
     /**
