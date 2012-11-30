@@ -1,30 +1,21 @@
 <?php
 namespace Valu\Service;
 
-use Zend\Stdlib\ParameterObjectInterface;
+class ServiceOptions extends \ArrayObject{
 
-class ServiceOptions implements ParameterObjectInterface{
-    
-    protected $options = array();
-    
-    public function __construct(array $options)
-    {
-        $this->options = $options;
-    }
-    
 	public function __get($key) {
-		return $this->__isset($key) ? $this->options[$key] : null;
+		return $this->offsetGet($key);
 	}
 
 	public function __isset($key) {
-		return isset($this->options[$key]);
+		return $this->offsetExists($key);
 	}
 
 	public function __set($key, $value) {
-		$this->options[$key] = $value;
+		$this->offsetSet($key, $value);
 	}
 
 	public function __unset($key) {
-		unset($this->options[$key]);
+		$this->offsetUnset($key);
 	}
 }
