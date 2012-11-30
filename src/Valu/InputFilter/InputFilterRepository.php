@@ -141,7 +141,9 @@ class InputFilterRepository
      */
     public function reload($name)
     {
-       $this->cascadeReload($name, array());
+       $array = array();
+       $this->cascadeReload($name, $array);
+       return true;
     }
     
     /**
