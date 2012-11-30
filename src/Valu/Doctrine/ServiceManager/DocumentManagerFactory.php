@@ -70,8 +70,11 @@ class DocumentManagerFactory implements FactoryInterface
         $odmConfig->setHydratorDir($appConfig['hydrator_dir']);
         $odmConfig->setHydratorNamespace($appConfig['hydrator_ns']);
         
-        $odmConfig->setAutoGenerateProxyClasses(false);
-        $odmConfig->setAutoGenerateHydratorClasses(false);
+        $odmConfig->setAutoGenerateProxyClasses(
+                isset($appConfig['auto_generate_proxy_classes']) ? (bool) $appConfig['auto_generate_proxy_classes'] : false);
+        
+        $odmConfig->setAutoGenerateHydratorClasses(
+                isset($appConfig['auto_generate_hydrator_classes']) ? (bool) $appConfig['auto_generate_hydrator_classes'] : false);
         
         if(!isset($appConfig['dbname']) && isset($config['mongodb']['database'])){
             $appConfig['dbname'] = $config['mongodb']['database'];
