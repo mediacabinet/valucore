@@ -15,6 +15,27 @@ use Doctrine\ODM\MongoDB\Query\Builder;
 class Helper
 {
     /**
+     * Mongo ID type
+     * 
+     * @var string
+     */
+    const ID_MONGO = 'mongoid';
+    
+    /**
+     * UUID3 type
+     * 
+     * @var string
+     */
+    const ID_UUID3 = 'uuid3';
+    
+    /**
+     * UUID5 type
+     * 
+     * @var string
+     */
+    const ID_UUID5 = 'uuid5';
+    
+    /**
      * Indicates find operation for a single entity
      *
      * @var string
@@ -36,6 +57,13 @@ class Helper
     const UNIVERSAL_SELECTOR = '*';
     
     /**
+     * ID selector prefix
+     * 
+     * @var string
+     */
+    const ID_PREFIX = '#';
+    
+    /**
      * Command identifier prefix
      * 
      * @var string
@@ -55,6 +83,20 @@ class Helper
      * @var array
      */
     protected $documentNames = null;
+    
+    /**
+     * Length of the ID for autodetection
+     * 
+     * @var int
+     */
+    protected $idLength = null;
+    
+    /**
+     * ID type
+     * 
+     * @var string
+     */
+    protected $idType = null;
     
     /**
      * Selector options (as passed to selector constructor)
@@ -80,7 +122,8 @@ class Helper
      * 
      * @param mixed $query                Query
      * @param null|string|array $fields   Field(s) to return
-     * @return array                      Array of documents or values for requested fields
+     * @return array                      Array of documents or values for requested fields.
+     *                                    Returns empty array if query doesn't match.
      */
     public function query($query, $fields = null)
     {
@@ -95,7 +138,8 @@ class Helper
      * 
      * @param string|array $query   Query
      * @param string|array $fields  Field(s) to return
-     * @return mixed                Document, field value or array of values
+     * @return mixed                Document, field value or array of values. 
+     *                              Returns null if query doesn't match.
      */
     public function queryOne($query, $fields = null)
     {
@@ -109,7 +153,8 @@ class Helper
      * 
      * @param string $selector    CSS style selector
      * @param string $fields      Field(s) to return    
-     * @return array              Array of documents or values for requested fields
+     * @return array              Array of documents or values for requested fields.
+     *                            Returns empty array if selector doesn't match.
      */
     public function findBySelector($selector, $fields = null)
     {
@@ -123,7 +168,8 @@ class Helper
      * 
      * @param string $selector    CSS style selector
      * @param string $fields      Field(s) to return    
-     * @return mixed              Document or value(s) of requested field(s)
+     * @return mixed              Document or value(s) of requested field(s).
+     *                            Returns null if selector doesn't match.
      */
     public function findOneBySelector($selector, $fields = null)
     {
@@ -137,7 +183,8 @@ class Helper
      * 
      * @param array $query            Query criteria
      * @param string|array $fields    Field(s) to return
-     * @return array                  Documents or value(s) of requested field(s)
+     * @return array                  Documents or value(s) of requested field(s).
+     *                                Returns empty array if query doesn't match.
      */
     public function findByArray(array $query, $fields = null)
     {
@@ -151,7 +198,8 @@ class Helper
      *
      * @param array $query            Query criteria
      * @param string|array $fields    Field(s) to return
-     * @return array                  Documents or value(s) of requested field(s)
+     * @return array                  Documents or value(s) of requested field(s).
+     *                                Returns null if query doesn't match.
      */
     public function findOneByArray(array $query, $fields = null)
     {
@@ -169,7 +217,14 @@ class Helper
     public function applyQuery(Builder $queryBuilder, $query, Expr $expression)
     {
         if(is_string($query)) {
+            if (substr($query, 0, 1) !== self::ID_PREFIX 
+                && ($id = $this->detectId($query)) !== null) {
+                
+                $query = self::ID_PREFIX . $id;
+            }
+            
             $this->applySelector($queryBuilder, $query, $expression);
+            
         } elseif (is_array($query)) {
             throw new \Exception('Not implemented');
         } else {
@@ -187,7 +242,6 @@ class Helper
      */
     public function applySelector(Builder $queryBuilder, $selector, Expr $expression = null)
     {
-
         if($selector instanceof SelectorParser){
             $definition = $selector;
         } else {
@@ -258,12 +312,49 @@ class Helper
                 return $documents;
             } else {
                 return array(
-                    $this->repository->getClassName()
+                    'default' => $this->repository->getClassName()
                 );
             }
         } else {
             return $this->documentNames;
         }
+    }
+    
+    /**
+     * Enable ID autodetection
+     * 
+     * @param string $type ID type
+     * @return \Valu\Doctrine\MongoDB\Query\Helper
+     */
+    public function enableIdDetection($type = self::ID_MONGO)
+    {
+        $this->idType = $type;
+        
+        switch ($this->idType) {
+            case self::ID_MONGO:
+                $this->idLength = 24;
+                break;
+            case self::ID_UUID3:
+            case self::ID_UUID5:
+                $this->idLength = 32;
+                break;
+            default:
+                throw new \InvalidArgumentException('Unrecognized ID type');
+                break;
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * Disable ID autodetection
+     * 
+     * @return \Valu\Doctrine\MongoDB\Query\Helper
+     */
+    public function disableIdDetection()
+    {
+        $this->idLength = null;
+        return $this;
     }
     
     /**
@@ -309,6 +400,14 @@ class Helper
         return $this->getDocumentRepository()->getDocumentManager();
     }
     
+    /**
+     * Performs query
+     * 
+     * @param mixed $query
+     * @param array $fields
+     * @param int $mode
+     * @return multitype:|\Valu\Doctrine\MongoDB\Query\mixed|Ambigous <string, multitype:, \Doctrine\ODM\MongoDB\Cursor, NULL, \Valu\Doctrine\MongoDB\Query\array|\Doctrine\ODM\MongoDB\Cursor, multitype:unknown >|NULL
+     */
     private function doQuery($query, $fields = null, $mode = self::FIND_MANY)
     {
         if(is_string($query)) {
@@ -318,7 +417,7 @@ class Helper
                 return $this->findOneBySelector($query, $fields);
             }
         } elseif(is_array($query)) {
-             
+            
             if(empty($query) || $this->isAssociativeArray($query)) {
                 if ($mode == self::FIND_MANY) {
                     return $this->findByArray($query, $fields);
@@ -364,6 +463,7 @@ class Helper
      * @param array $query
      * @param array|string $fields
      * @param string $mode
+     * @return null|array|\Doctrine\ODM\MongoDB\Cursor
      */
     private function doFindByArray(array $query, $fields = null, $mode = self::FIND_MANY)
     {
@@ -394,15 +494,15 @@ class Helper
     
         // Apply internal commands
         if (null !== $args['sort']) {
-            $cursor->sort($args['sort']);
+            $qb->sort($args['sort']);
         }
     
         if (null !== $args['limit']) {
-            $cursor->limit($args['limit']);
+            $qb->limit($args['limit']);
         }
     
         if (null !== $args['offset']) {
-            $cursor->skip($args['offset']);
+            $qb->skip($args['offset']);
         }
     
         if ($mode == self::FIND_MANY) {
@@ -424,6 +524,21 @@ class Helper
      */
     private function doFindBySelector($selector, $fields = null, $mode = self::FIND_MANY)
     {
+        if ($selector == '') {
+            return $mode == self::FIND_MANY ? array() : null;
+        }
+        
+        // Detect ID
+        $id = $this->detectId($selector);
+        
+        // Find documents using faster methods 
+        // when ID selector is used
+        if ($id !== null && $fields === null && $mode == self::FIND_ONE) {
+            return $this->getDocumentRepository()->findOneBy(array('id' => $id));
+        } elseif ($id !== null) {
+            return $this->doFindByArray(array('id' => $id), $fields, $mode);
+        }
+        
         $qb = $this->repository->createQueryBuilder();
         $this->applyFields($qb, $fields);
         
@@ -469,12 +584,12 @@ class Helper
      * @param array|\Doctrine\ODM\MongoDB\Cursor $result
      * @param null|string|array $fields
      * @param int $mode
-     * @return string|array|\Doctrine\ODM\MongoDB\Cursor
+     * @return string|array|\Doctrine\ODM\MongoDB\Cursor|null
      */
     private function prepareResult($result, $fields, $mode)
     {
-        if (!$result) {
-            return $result;
+        if ($result === null) {
+            return null;
         }
         
         if (is_string($fields)) {
@@ -522,5 +637,34 @@ class Helper
     private function isAssociativeArray(array $array)
     {
         return (array_keys($array) !== range(0, count($array) - 1));
+    }
+    
+    /**
+     * Detect if value represents ID
+     * 
+     * @param string $value
+     * @return string|NULL
+     */
+    private function detectId($value)
+    {
+        $matchLength = false;
+        
+        if ($this->idLength !== null
+            && strlen($value) == $this->idLength) {
+            
+            $matchLength = true;
+        } elseif ($this->idLength !== null
+                  && strlen($value) == $this->idLength+1
+                  && substr($value, 0, 1) == self::ID_PREFIX) {
+            
+            $matchLength = true;
+            $value = substr($value, 1);
+        }
+        
+        if ($matchLength && ctype_alnum($value)) {
+            return $value;
+        } else {
+            return null;
+        }
     }
 }
