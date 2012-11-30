@@ -7,13 +7,14 @@ class ParametrizedException extends \Exception{
 	
 	private $vars = array();
 
-	public function __construct($message, array $vars = array(), $code = 0, $previous = null){
+	public function __construct($message, $vars = null, $code = 0, $previous = null){
 		
 		$this->rawMessage = $message;
 		
-		$this->setVars($vars);
-		
-		if(sizeof($vars)){
+		if(is_array($vars) && sizeof($vars)){
+		    
+		    $this->setVars($vars);
+		    
 			$keys = array_keys($vars);
 			$keys = array_map(
 				array($this, 'escapeVar'),
