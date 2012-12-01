@@ -93,16 +93,13 @@ class Auth extends AbstractPlugin
      */
     public function getAclRoles()
     {
-        if (!$this->roles) {
-            $this->roles = $this->getIdentity('roles');
-            
-            if (!$this->roles) {
-                $this->roles = $this->getServiceBroker()
-                    ->service('Acl.Role')->find($this->getId(), '/*');
-            }
-            
-        }
+        $this->roles = $this->getIdentity('roles');
         
+        if (!$this->roles) {
+            $this->roles = $this->getServiceBroker()
+                ->service('Acl.Role')->find($this->getId(), '/*');
+        }
+    
         return $this->roles;
     }
     
