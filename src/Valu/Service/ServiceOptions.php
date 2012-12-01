@@ -4,6 +4,11 @@ namespace Valu\Service;
 class ServiceOptions extends \ArrayObject{
 
 	public function __get($key) {
+	    
+	    if (!$this->__isset($key)) {
+	        return null;
+	    }
+	    
 		return $this->offsetGet($key);
 	}
 
