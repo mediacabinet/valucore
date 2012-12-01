@@ -15,8 +15,16 @@ class MockService extends AbstractService implements ServiceInterface
     
     protected $definitionDriver;
     
+    protected $event;
+    
     public function __invoke(ServiceEvent $e){
+        $this->event = $e;
         return true;
+    }
+    
+    public function getEvent()
+    {
+        return $this->event;
     }
     
     /**
