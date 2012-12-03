@@ -71,16 +71,18 @@ class Auth extends AbstractPlugin
         $path  = explode('/', $ns);
         
         while(sizeof($path)){
+        
             if (isset($roles[$ns])) {
-                return is_array($roles[$ns]) 
-                    ? array_shift($roles[$ns]) : $roles[$ns];   
+                return (is_array($roles[$ns]) ? array_shift($roles[$ns]) : $roles[$ns]);
             }
-
-            array_pop($path); // remove last empty item (trailing slash)
-            if(sizeof($path)) 
-                array_pop($path); // remove last item
-    
+        
+            // remove last empty item (trailing slash)
+            array_pop($path);
             $ns = implode('/', $path);
+        
+            if (!$ns) {
+                $ns = '/';
+            }
         }
         
         return null;
