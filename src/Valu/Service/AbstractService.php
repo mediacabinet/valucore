@@ -262,9 +262,9 @@ abstract class AbstractService
 	    $pluginManager->setServiceBroker($this->getServiceBroker());
 	    
 	    $this->pluginManager = $pluginManager;
-	    
 	    return $this;
 	}
+
 	
     /**
      * Set service options
