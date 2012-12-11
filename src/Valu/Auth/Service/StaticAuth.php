@@ -32,4 +32,9 @@ class StaticAuth extends AbstractService
         
         return $result;
     }
+    
+    public function setOption($key, $value)
+    {
+        parent::setOption($key, $value);
+    }
 }
