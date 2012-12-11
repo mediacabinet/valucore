@@ -86,6 +86,16 @@ class Sequence implements \Iterator
     }
 
     /**
+     * Is the sequence defined explicitely universal?
+     * 
+     * @return boolean
+     */
+    public function isExplicitUniversal()
+    {
+        return ($this->items[0] instanceof Universal);
+    }
+    
+    /**
      * Turns universal sequence into element specific
      * sequence
      *
