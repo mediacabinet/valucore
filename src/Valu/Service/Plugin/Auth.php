@@ -3,6 +3,7 @@ namespace Valu\Service\Plugin;
 
 use Valu\Acl\Role\UniversalRole;
 use Valu\Service\Plugin\AbstractPlugin;
+use Valu\Service\Plugin\Auth\AclRole;
 
 class Auth extends AbstractPlugin
 {
@@ -25,21 +26,21 @@ class Auth extends AbstractPlugin
      * 
      * @var array
      */
-    private $roles = null;
+    private static $roles = null;
     
     /**
      * Full identity information
      * 
      * @var array
      */
-    private $identity = null;
+    private static $identity = null;
     
     /**
      * Group IDs
      * 
      * @var array
      */
-    private $groups = null;
+    private static $groups = null;
     
     /**
      * Retrieve universal role for current user in given ACL
@@ -52,8 +53,8 @@ class Auth extends AbstractPlugin
     {
         $role = $this->getAclRole($ns);
         
-        $universalRole = new UniversalRole($role, $this->getId());
-        return $universalRole;
+        $aclRole = new AclRole($role, $this);
+        return $aclRole;
     }
     
     /**
@@ -95,14 +96,14 @@ class Auth extends AbstractPlugin
      */
     public function getAclRoles()
     {
-        $this->roles = $this->getIdentity('roles');
+        self::$roles = $this->getIdentity('roles');
         
-        if (!$this->roles) {
-            $this->roles = $this->getServiceBroker()
+        if (!self::$roles) {
+            self::$roles = $this->getServiceBroker()
                 ->service('Acl.Role')->find($this->getId(), '/*');
         }
     
-        return $this->roles;
+        return self::$roles;
     }
     
     /**
@@ -133,17 +134,17 @@ class Auth extends AbstractPlugin
      */
     public function getGroups()
     {
-        if ($this->groups === null) {
-            $this->groups = $this->getIdentity('groups');
+        if (self::$groups === null) {
+            self::$groups = $this->getIdentity('groups');
             
-            if (!$this->groups) {
-                $this->groups = $this->getServiceBroker()
+            if (!self::$groups) {
+                self::$groups = $this->getServiceBroker()
                     ->service('Group')
                     ->getMemberships($this->getId());
             }
         }
         
-        return $this->groups;
+        return self::$groups;
     }
     
     /**
@@ -165,22 +166,22 @@ class Auth extends AbstractPlugin
     public function getIdentity($spec = null)
     {
         // Assume that identity doesn't change in the middle of process
-        if (!$this->identity) {
-            $this->identity = $this->auth()
+        if (!self::$identity) {
+            self::$identity = $this->auth()
                 ->until('is_array')->exec('getIdentity')->last();
         }
         
-        if(!is_array($this->identity)){
+        if(!is_array(self::$identity)){
             throw new \Exception('User identity not found');
         }
 
         if($spec !== null){
-            return isset($this->identity[$spec])
-                ? $this->identity[$spec]
+            return isset(self::$identity[$spec])
+                ? self::$identity[$spec]
                 : null;
         }
         else{
-            return $this->identity;
+            return self::$identity;
         }
 
     }
@@ -195,9 +196,9 @@ class Auth extends AbstractPlugin
     
     public function reset()
     {
-        $this->groups = null;
-        $this->identity = null;
-        $this->roles = null;
+        self::$groups   = null;
+        self::$identity = null;
+        self::$roles    = null;
     }
 
     /**
