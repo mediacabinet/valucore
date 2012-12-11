@@ -20,33 +20,6 @@ class SequenceOptions extends AbstractOptions{
      * @var array|Traversable
      */
     protected $delegateOptions;
-    
-    /**
-     * Default element
-     * 
-     * @var string
-     */
-    protected $defaultElement;
-
-    /**
-     * Retrieve default element
-     * 
-     * @return string
-     */
-    public function getDefaultElement()
-    {
-        return $this->defaultElement;
-    }
-
-    /**
-     * Set default element
-     * 
-     * @param string $defaultElement
-     */
-	public function setDefaultElement($defaultElement)
-    {
-        $this->defaultElement = $defaultElement;
-    }
 
 	/**
      * Retrieve delegate instance
