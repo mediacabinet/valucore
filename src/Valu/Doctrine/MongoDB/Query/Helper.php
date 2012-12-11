@@ -2,6 +2,7 @@
 namespace Valu\Doctrine\MongoDB\Query;
 
 use Valu\Selector\Parser\SelectorParser;
+use Valu\Doctrine\MongoDB\Query\Selector\Sequence;
 use Doctrine\ODM\MongoDB\Query\Expr;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ODM\MongoDB\Query\Builder;
@@ -247,7 +248,7 @@ class Helper
         } else {
             $definition = SelectorParser::parseSelector($selector);
         }
-
+        
         $selector = new Selector(
             $definition, 
             $this->repository->getDocumentManager(), 
@@ -306,15 +307,14 @@ class Helper
     public function getDocumentNames()
     {
         if ($this->documentNames === null) {
+            
+            // Fetch element (document) names based on discriminator map
             $documents = $this->repository->getClassMetadata()->discriminatorMap;
             
-            if (sizeof($documents)) {
-                return $documents;
-            } else {
-                return array(
-                    'default' => $this->repository->getClassName()
-                );
-            }
+            // Define default element name and corresponding class name. 
+            $documents[Sequence::DEFAULT_ELEMENT] = $this->repository->getClassName();
+            
+            return $documents;
         } else {
             return $this->documentNames;
         }

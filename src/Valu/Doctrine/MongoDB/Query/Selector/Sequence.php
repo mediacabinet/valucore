@@ -21,6 +21,13 @@ class Sequence
 {
     
     /**
+     * Default element name
+     * 
+     * @var string
+     */
+    const DEFAULT_ELEMENT = '_default';
+    
+    /**
      * Sequence definition
      * 
      * @var Valu\Selector\Sequence
@@ -110,45 +117,40 @@ class Sequence
         $items = $this->sequence->getItems();
         
         /**
-         * Determine all element names for universal selectors
+         * Determine element names for universal selectors
          */
         if($this->sequence->isUniversal()){
+            
             $elements = array_keys($this->getDocumentNames());
             
-            // Remove universal selector
-            if ($this->sequence->getItem(0) instanceof Universal) {
+            // For explicit universal selectors (*) perform a separate
+            // query for each element. For implicit universal selector
+            // perform single query to the default element (usually an
+            // abstract class).
+            if ($this->sequence->isExplicitUniversal()) {
                 array_shift($items);
+                
+                // Remove default element if other elements are defined
+                if (sizeof($elements) > 1) {
+                    $key = array_search(self::DEFAULT_ELEMENT, $elements);
+                    
+                    if ($key !== false) {
+                        unset($elements[$key]);
+                    }
+                }
+                
+            } elseif(in_array(self::DEFAULT_ELEMENT, $elements)) {
+                $elements = array(self::DEFAULT_ELEMENT);
             }
-        }
-        /**
-         * Use the current element name
-         */
-        else if(($element = $this->sequence->getElement()) !== null){
-            $elements[] = $element;
+        } else {
+            $elements = array($this->sequence->getElement());
             
             // Remove element selector
             array_shift($items);
         }
-        /**
-         * If only one document name is defined, use that
-         * as the default
-         */
-        else if(sizeof($this->getDocumentNames()) == 1){
-            $elements = array_keys($this->getDocumentNames());
-        }
-        /**
-         * Use the defined default element name
-         */
-        else if(($element = $this->getOption('default_element')) !== null){
-            $elements[] = $element;
-        }
-        /**
-         * Fallback: consider universal
-         */
-        else{
-            $elements = array_keys($this->getDocumentNames());
-        }
         
+        // Prepare room for the element selector by prepending
+        // null as the first item
         array_unshift(
             $items, 
             null
