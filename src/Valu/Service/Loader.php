@@ -152,6 +152,12 @@ class Loader{
 	{
 		foreach($services as $key => $impl){
 		    
+		    $enabled = isset($impl['enabled']) ? $impl['enabled'] : true;
+		    
+		    if (!$enabled){
+		        continue;
+		    }
+		    
 			$id 		= isset($impl['id']) ? $impl['id'] : $key;
 			$name 	    = isset($impl['name']) ? $impl['name'] : null;
 			$class 		= isset($impl['class']) ? $impl['class'] : null;
