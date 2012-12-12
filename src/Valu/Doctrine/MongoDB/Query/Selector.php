@@ -187,11 +187,7 @@ class Selector
     public function createSequence(SequenceDefinition $sequenceDefinition){
         
         $options = $this->getOption('sequence_options');
-        
-        if(!isset($options['default_element'])){
-            $options['default_element'] = $this->getOption('default_element');
-        }
-        
+
         $sequence = new Sequence(
             $sequenceDefinition,
             $this->getDocumentManager(),
