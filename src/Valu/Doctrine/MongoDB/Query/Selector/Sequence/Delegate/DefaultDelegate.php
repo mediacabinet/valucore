@@ -276,9 +276,11 @@ class DefaultDelegate implements DelegateInterface
             return array();
         } elseif($items[0] instanceof Selector) {
             
+           $documentName = $this->getOption('path_document', $this->getDocument());
+            
            // Create a new Query Builder instance
            $qb = $this->getDocumentManager()->createQueryBuilder(
-               $this->getOption('path_document', $this->getDocument()));
+               $documentName);
            
            $attr = $this->mapAttribute($this->getOption('path_attribute'));
            
@@ -289,6 +291,7 @@ class DefaultDelegate implements DelegateInterface
            // Use template to create a new selector query
            $template = $this->getSequence()->getSelectorTemplate();
            $selector = $template->createSelector($items[0]);
+           $selector->setDocumentNames(array(Sequence::DEFAULT_ELEMENT => $documentName));
            $selector->extendQuery($qb);
            
            // Fetch data

@@ -72,7 +72,7 @@ class Selector
     public function __construct(SelectorDefinition $selector, DocumentManager $documentManager, array $documentNames, $options = null){
         $this->selector = $selector;
         $this->documentManager = $documentManager;
-        $this->documentNames = $documentNames;
+        $this->setDocumentNames($documentNames);
         
         if(!is_null($options)){
             $this->setOptions($options);
@@ -227,11 +227,21 @@ class Selector
     }
     
     /**
-     * Retrieve document class names
-     * 
-     * @return string
+     * Set document names
+     * @param array $names
      */
-    public function getDocumentNames(){
+    public function setDocumentNames(array $names)
+    {
+        $this->documentNames = $names;
+    }
+    
+    /**
+     * Retrieve document names
+     * 
+     * @return array
+     */
+    public function getDocumentNames()
+    {
         return $this->documentNames;
     }
     
