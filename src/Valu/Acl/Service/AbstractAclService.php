@@ -58,7 +58,7 @@ abstract class AbstractAclService extends AbstractService
     /**
      * Retrieve Valu\Acl\Ac instance
      * 
-     * @return \Valu\Acl\Ac
+     * @return \Valu\Acl\Acl
      */
     public function getAcl()
     {
