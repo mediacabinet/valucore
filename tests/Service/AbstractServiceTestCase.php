@@ -75,7 +75,10 @@ abstract class AbstractServiceTestCase extends TestCase
     {
         if (static::$dropMongoCollection) {
             $mongo = static::initApp()->getServiceManager()->get('MongoDb');
-            $mongo->{static::$dropMongoCollection}->drop();
+            
+            foreach ((array) static::$dropMongoCollection as $coll) {
+                $mongo->{$coll}->drop();
+            }
         }
     }
     
@@ -95,7 +98,7 @@ abstract class AbstractServiceTestCase extends TestCase
     }
     
     /**
-     * Change identity param value
+     * Change identity
      * 
      * @param string $param
      * @param mixed $value
@@ -104,6 +107,27 @@ abstract class AbstractServiceTestCase extends TestCase
     {
         $staticAuth = static::getServiceLoader()->load('StaticAuth');
         $staticAuth->setOption('identity', static::$identities[$name]);
+        
+        $auth = new Auth();
+        $auth->reset();
+    }
+    
+    /**
+     * Update identity specs
+     * 
+     * @param array $specs
+     */
+    protected static function updateIdentity($specs)
+    {
+        $staticAuth = static::getServiceLoader()->load('StaticAuth');
+        $identity = $staticAuth->getOption('identity');
+        
+        $identity = array_merge(
+            $identity,
+            $specs
+        );
+        
+        $staticAuth->setOption('identity', $identity);
         
         $auth = new Auth();
         $auth->reset();
