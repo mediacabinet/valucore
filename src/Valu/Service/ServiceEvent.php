@@ -1,5 +1,7 @@
 <?php
 namespace Valu\Service;
+
+use Zend\EventManager\ResponseCollection;
 use Zend\EventManager\Event;
 
 class ServiceEvent extends Event
@@ -32,6 +34,12 @@ class ServiceEvent extends Event
      * @var \Exception
      */
     protected $exception;
+    
+    /**
+     * Response collection
+     * @var ResponseCollection
+     */
+    protected $responses;
 
     /**
      * Retrieve the name of the service
@@ -90,7 +98,7 @@ class ServiceEvent extends Event
     /**
      * Set current exception
      * 
-     * @param \ExceptionÊ $exception
+     * @param \Exception $exception
      * @return ServiceEvent
      */
     public function setException(\Exception $exception)
@@ -120,4 +128,21 @@ class ServiceEvent extends Event
         $this->context = $context;
         return $this;
     }
+    
+	/**
+     * @return \Zend\EventManager\ResponseCollection
+     */
+    public function getResponses()
+    {
+        return $this->responses;
+    }
+
+	/**
+     * @param \Zend\EventManager\ResponseCollection $responses
+     */
+    public function setResponses($responses)
+    {
+        $this->responses = $responses;
+    }
+
 }
