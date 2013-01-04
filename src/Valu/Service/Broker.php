@@ -296,6 +296,7 @@ class Broker{
 	        $argv = $this->getEventManager()->prepareArgs($argv);
 	    }
 	    
+	    $responses = null;
 		$event	= $this->prepareEvent($context, $service, $operation, $argv);
 		$name	= $event->getName();
 		
@@ -347,6 +348,10 @@ class Broker{
 		    
 		    $e = clone $event;
 		    $e->setName($finalEvent);
+		    
+		    if ($responses) {
+		        $e->setResponses($responses);
+		    }
 		    
 		    $this->trigger($e);
 		    
