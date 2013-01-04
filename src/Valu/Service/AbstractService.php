@@ -104,7 +104,6 @@ abstract class AbstractService
 	}
 	
 	/**
-	 * (non-PHPdoc)
 	 * @see \Valu\Service\ServiceInterface::getEvent()
 	 */
 	public function getEvent()
