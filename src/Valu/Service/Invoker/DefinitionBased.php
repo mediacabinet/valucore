@@ -1,8 +1,6 @@
 <?php
 namespace Valu\Service\Invoker;
 
-use Zend\Stdlib\ArrayUtils;
-
 use Valu\Service\ServiceEvent;
 use Valu\Service\ServiceInterface;
 use Valu\Service\Exception;
@@ -10,6 +8,7 @@ use Valu\Service\Definition;
 use Valu\Service\Invoker\InvokerInterface;
 use Valu\Service\Feature\DefinitionProviderInterface;
 use Zend\Cache\Storage\StorageInterface;
+use Zend\Stdlib\ArrayUtils;
 
 class DefinitionBased implements InvokerInterface
 {
@@ -154,6 +153,11 @@ class DefinitionBased implements InvokerInterface
     private function resolveParams(Definition $definition, $operation, $args)
     {
 
+        // We don't want to manipulate the params object
+        if ($args instanceof \ArrayObject) {
+            $args = $args->getArrayCopy();
+        }
+        
         // Return numeric parameter list as is and let
         // PHP handle errors
         if (array_key_exists(0, $args)) {
