@@ -1,4 +1,6 @@
 <?php
 namespace Valu\Service\Exception;
 
-class UnsupportedContextException extends \Valu\Service\Exception\ServiceException {}
+class UnsupportedContextException extends ServiceException {
+    protected $code = 1010;
+}
