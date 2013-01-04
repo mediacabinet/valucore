@@ -249,6 +249,17 @@ class DefaultDelegate implements DelegateInterface
         
         $path = $this->translatePathArray($pathSelector->getPathItems());
         
+        // Apply expression that causes this query to return null
+        if (!$path) {
+            $selector = new SimpleSelector\Attribute(
+                '_id',
+                SimpleSelector\Attribute::OPERATOR_EQUALS,
+                false
+            );
+            
+            return $this->applyAttributeSelector($selector);
+        }
+        
         $condition =    '^' .
                         SimpleSelector\Path::PATH_SEPARATOR . 
                         implode(SimpleSelector\Path::PATH_SEPARATOR, $path) .
@@ -298,6 +309,11 @@ class DefaultDelegate implements DelegateInterface
            $result = $qb->limit(1)
                ->getQuery()
                ->getSingleResult();
+           
+           // Exit early if selector could not be resolved
+           if (!$result || !isset($result[$attr]) || !$result[$attr]) {
+               return false;
+           }
            
            $path = ltrim($result[$attr], '/');
            
