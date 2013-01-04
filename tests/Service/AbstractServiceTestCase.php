@@ -25,6 +25,18 @@ abstract class AbstractServiceTestCase extends TestCase
             'roles'      => array('/' => 'member'),
             'groups'     => array('1122aaffe96f3690b71846a056662ab9')
         ),
+        'admin' => array(
+            'id'         => 'aa114c8099953acabc060770eb296f86',
+            'account'    => '3a33ebb8749638479a58a6bc2c68262d',
+            'roles'      => array('/' => 'member', '/account/3a33ebb8749638479a58a6bc2c68262d/' => 'admin'),
+            'groups'     => array('bcdd66f7e96f3690b71846a056662ab9')
+        ),
+        'alt-admin' => array(
+            'id'         => 'aabbcc8099953acabc060770eb296f86',
+            'account'    => '99aaccb8749638479a58a6bc2c68262d',
+            'roles'      => array('/' => 'member', '/account/99aaccb8749638479a58a6bc2c68262d/' => 'admin'),
+            'groups'     => array('1122aaffe96f3690b71846a056662ab9')
+        ),
         'superuser'      => array(
             'id'         => 'a1112c8099953acabc060770eb296fff',
             'account'    => 'aa33ebb8749638479a58a6bc2c6826dd',
@@ -32,6 +44,13 @@ abstract class AbstractServiceTestCase extends TestCase
             'groups'     => array('66aa11f7e96f3690b71846a056662ab9')
         )
     );
+    
+    /**
+     * Default identity setting
+     * 
+     * @var string
+     */
+    protected static $defaultIdentity = 'member';
     
     /**
      * Application instance
@@ -138,7 +157,7 @@ abstract class AbstractServiceTestCase extends TestCase
      */
     protected static function restoreIdentity()
     {
-        static::changeIdentity('member');
+        static::changeIdentity(static::$defaultIdentity);
     }
     
     /**
@@ -156,7 +175,7 @@ abstract class AbstractServiceTestCase extends TestCase
                 'StaticAuth',
                 'Auth',
                 'Valu\Auth\Service\StaticAuth',
-                array('identity' => static::$identities['member']),
+                array('identity' => static::$identities[static::$defaultIdentity]),
                 10000);
         }
         
