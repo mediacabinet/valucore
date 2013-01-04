@@ -76,6 +76,11 @@ class FileResponse extends Response
     
         if (file_exists($this->getFile())) {
             readfile($this->getFile());
+            
+            // Remove temporary file
+            if ($this->getCleanup() && is_writable($this->getFile()) && is_file($this->getFile())) {
+                unlink($this->getFile());
+            }
         }
         
         $this->contentSent = true;
