@@ -2,9 +2,7 @@
 namespace Valu\Test\Model;
 
 use Valu\Model\ArrayAdapter\ObjectRecursionDelegate;
-
-use Valu\Model\ArrayAdapter\ArrayRecursionDelegate;
-
+use Valu\Model\ArrayAdapter\RecursionDelegate;
 use Valu\Model\ArrayAdapter;
 use Valu\Test\Model\TestAsset\MockModel;
 
@@ -80,7 +78,7 @@ class ArrayAdapterTest extends \PHPUnit_Framework_TestCase
         );
     }
     
-    public function testToArrayWithArrayRecursionDelegate()
+    public function testToArrayWithRecursionDelegate()
     {
         $data = array(
             'meta' => array('data'=>'metadata', 'keywords'=>'kw'),
@@ -90,7 +88,7 @@ class ArrayAdapterTest extends \PHPUnit_Framework_TestCase
         
         $adapter = new ArrayAdapter();
         $adapter->getDelegates()->insert(
-            new ArrayRecursionDelegate()        
+            new RecursionDelegate()        
         );
         
         $this->assertEquals(

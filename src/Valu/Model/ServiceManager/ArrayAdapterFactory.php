@@ -2,7 +2,7 @@
 namespace Valu\Model\ServiceManager;
 
 use Valu\Model\ArrayAdapter\DateFormatterDelegate;
-use Valu\Model\ArrayAdapter\ArrayRecursionDelegate;
+use Valu\Model\ArrayAdapter\RecursionDelegate;
 use Valu\Model\ArrayAdapter\ObjectRecursionDelegate;
 use Valu\Model\ArrayAdapter;
 use Zend\Cache\StorageFactory;
@@ -23,7 +23,7 @@ class ArrayAdapterFactory implements FactoryInterface
         $adapter = new ArrayAdapter();
         
         $adapter->getDelegates()->insert(
-            new ArrayRecursionDelegate()        
+            new RecursionDelegate()        
         );
         
         $adapter->getDelegates()->insert(
