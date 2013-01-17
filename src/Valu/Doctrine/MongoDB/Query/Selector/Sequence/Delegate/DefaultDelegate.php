@@ -355,18 +355,30 @@ class DefaultDelegate implements DelegateInterface
         
         // Convert based on field type
         $meta = $this->getElementMetadata($element);
-        $type = $meta->getTypeOfField($attr);
-
-        if (!$type) {
-            foreach ($meta->parentClasses as $class)
-            {
-                $type = $this->getDocumentManager()->getClassMetadata($class)->getTypeOfField($attr);
-                if($type) break;
+        
+        $fields = explode('.', $attr);
+        foreach ($fields as $index => $fieldName) {
+            if ($meta->hasAssociation($fieldName)) {
+                $fieldMapping = $meta->getFieldMapping($fieldName);
+                $meta =  $this->getDocumentManager()->getClassMetadata($fieldMapping['targetDocument']);
+            } elseif($index === (sizeof($fields)-1)) {
+                $type = $meta->getTypeOfField($attr);
+                
+                if (!$type) {
+                    foreach ($meta->parentClasses as $class)
+                    {
+                        $type = $this->getDocumentManager()->getClassMetadata($class)->getTypeOfField($attr);
+                        if($type) break;
+                    }
+                }
+                
+                if ($type && $type !== 'collection' && $type !== 'one') {
+                    $cond = Type::getType($type)->convertToDatabaseValue($cond);
+                }
+            } else {
+                throw new Exception\UnknownFieldException(
+                    sprintf("Unknown field '%s'", $attr));
             }
-        }
-
-        if ($type && $type !== 'collection' && $type !== 'one') {
-            $cond = Type::getType($type)->convertToDatabaseValue($cond);
         }
         
         switch ($operator) {
