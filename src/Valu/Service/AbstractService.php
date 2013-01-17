@@ -136,7 +136,6 @@ abstract class AbstractService
 	}
 	
 	/**
-	 * (non-PHPdoc)
 	 * @see Valu\Service\ServiceInterface::define()
 	 */
 	public function define()
@@ -209,7 +208,6 @@ abstract class AbstractService
 	}
 	
 	/**
-	 * (non-PHPdoc)
 	 * @see Zend\ServiceLocator\ServiceLocator::setServiceLocator()
 	 */
 	public function setServiceLocator(ServiceLocatorInterface $serviceLocator){
@@ -217,7 +215,6 @@ abstract class AbstractService
 	}
 	
 	/**
-	 * (non-PHPdoc)
 	 * @see \Valu\Service\Feature\ServiceBrokerAwareInterface::setServiceBroker()
 	 */
 	public function setServiceBroker(Broker $broker)
