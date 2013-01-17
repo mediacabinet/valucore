@@ -57,8 +57,10 @@ class Utils{
      *
      * @return void
      */
-    public function install($module, $version, array $options = array()){
-    
+    public function install($module, $version, $options = null)
+    {
+        $options = is_null($options) ? array() : $options;
+        
         $fork    = false;
         $modules = $this->findModules();
         $current = array();
