@@ -2,13 +2,13 @@
 namespace Valu\Doctrine\MongoDB\Query\Selector\Sequence\Delegate;
 
 use Doctrine\ODM\MongoDB\Mapping\Types\Type;
-
 use Valu\Doctrine\MongoDB\Query\Selector\Sequence\DelegateInterface;
 use Valu\Selector\SimpleSelector\AbstractSelector;
 use Valu\Doctrine\MongoDB\Query\Selector\Sequence;
 use Valu\Selector\Selector;
 use Valu\Selector\SimpleSelector;
 use Valu\Selector\SimpleSelector\SimpleSelectorInterface;
+use Valu\Doctrine\MongoDB\Query\Selector\Exception;
 use Doctrine\ODM\MongoDB\Query\Builder;
 use Doctrine\ODM\MongoDB\Query\Expr;
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -113,11 +113,7 @@ class DefaultDelegate implements DelegateInterface
                 break;
         }
         
-        if($success === false){
-            throw new \Exception(
-                sprintf('Unable to process simple selector: %s', (string) $definition)        
-            );
-        }
+        return $success;
     }
     
     /**
@@ -190,9 +186,10 @@ class DefaultDelegate implements DelegateInterface
         
         if($discrField && $discrValue){
             $this->expression->field($discrField)->equals($discrValue);
+            return true;
+        } else {
+            return false;
         }
-        
-        return true;
     }
     
     protected function applyIdSelector(SimpleSelector\Id $idSelector){
@@ -368,7 +365,7 @@ class DefaultDelegate implements DelegateInterface
             }
         }
 
-        if ($type && $type !== 'collection') {
+        if ($type && $type !== 'collection' && $type !== 'one') {
             $cond = Type::getType($type)->convertToDatabaseValue($cond);
         }
         
@@ -418,7 +415,8 @@ class DefaultDelegate implements DelegateInterface
                 $field->equals($re);
                 break;
             default:
-                return false;
+                throw new Exception\UnknownOperatorException(
+                    sprintf("Unknown operator '%s'", $operator));
                 break;
         }
         
@@ -442,7 +440,8 @@ class DefaultDelegate implements DelegateInterface
     }
     
     protected function applyUnknownSelector(SelectorInterface $simpleSelector){
-        throw new \Exception(sprintf('Unknown selector "%s"', (string) $simpleSelector));
+        throw new Exception\UnknownSimpleSelectorException(
+            sprintf('Unknown selector "%s"', (string) $simpleSelector));
     }
     
     /**

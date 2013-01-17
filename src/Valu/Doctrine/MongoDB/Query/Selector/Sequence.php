@@ -10,6 +10,7 @@ use Valu\Selector\SimpleSelector\SimpleSelectorInterface;
 use Valu\Selector\SimpleSelector\Universal;
 use Valu\Doctrine\MongoDB\Query\Selector\Template;
 use Valu\Doctrine\MongoDB\Query\Selector\Sequence\Delegate as SequenceDelegate;
+use Valu\Doctrine\MongoDB\Query\Selector\Exception;
 
 /**
  * CSS selector based query
@@ -188,10 +189,19 @@ class Sequence
              */
             foreach ($items as $item){
                 if($item instanceof SimpleSelectorInterface){
-                    $this->getDelegate()->applySimpleSelector($this, $queryBuilder, $expr, $item);
+                    
+                    // Use delegate to apply simple selector
+                    if (!$this->getDelegate()->applySimpleSelector($this, $queryBuilder, $expr, $item)) {
+                        
+                        // Ensure that the expression contains at least one rule
+                        // that always matches
+                        if (sizeof($items) == 1 && $element == self::DEFAULT_ELEMENT) {
+                            $expr->field('_id')->exists(true);
+                        }
+                    }
                 }
                 else{
-                    throw new \Exception(
+                    throw new Exception\SequenceException(
                         sprintf(
                             'Unrecognized item in sequence "%s" at position %d',
                             (string) $this->sequence,
