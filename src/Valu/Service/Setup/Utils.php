@@ -199,7 +199,8 @@ class Utils{
          * Load module files if necessary
          */
         if(!$versionExists){
-            throw new \Exception('Download not implemented');
+            throw new \Exception(
+                sprintf("Download not implemented; unable to load module '%s' version '%s'", $module, $version));
         }
     
         return !$versionExists;
@@ -362,29 +363,35 @@ class Utils{
     }
     
     /**
-     * Detect the name of the module for file system path
+     * Detect the name of the module based on class
      *
      * @param object $object Setup instance
      * @return string|null Module name
      */
     public function whichModule($object){
         $reflection = new \ReflectionClass($object);
-        $path = $reflection->getFileName();
+        $ns = explode('\\', $reflection->getNamespaceName());
         
-        $dirs = $this->getOption('module_dirs');
-         
-        foreach($dirs as $dir){
-            $dir = realpath($dir);
+        if (class_exists($ns[0] . '\Module')) {
+            $reflection = new \ReflectionClass($ns[0] . '\Module');
+            return basename(dirname($reflection->getFileName()));
+        } else {
+            $path = $reflection->getFileName();
+            $dirs = $this->getOption('module_dirs');
              
-            if(strpos($path, $dir) === 0){
-                $dir = substr($path, strlen($dir));
-                $dir = ltrim($dir, DIRECTORY_SEPARATOR);
-                 
-                $a = explode(DIRECTORY_SEPARATOR, $dir);
-                return $a[0];
+            foreach($dirs as $dir){
+                $dir = realpath($dir);
+            
+                if(strpos($path, $dir) === 0){
+                    $dir = substr($path, strlen($dir));
+                    $dir = ltrim($dir, DIRECTORY_SEPARATOR);
+            
+                    $a = explode(DIRECTORY_SEPARATOR, $dir);
+                    return $a[0];
+                }
             }
         }
-         
+
         return null;
     }
     
