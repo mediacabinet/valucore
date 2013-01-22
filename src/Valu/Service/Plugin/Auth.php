@@ -138,9 +138,15 @@ class Auth extends AbstractPlugin
             self::$groups = $this->getIdentity('groups');
             
             if (!self::$groups) {
-                self::$groups = $this->getServiceBroker()
-                    ->service('Group')
-                    ->getMemberships($this->getId());
+                $service = $this->getServiceBroker()->service('Group');
+                
+                $enabled = $service->disableFilter('access');
+                
+                self::$groups = $service->getMemberships($this->getId());
+                
+                if ($enabled) {
+                    $service->enableFilter('access');
+                }
             }
         }
         
