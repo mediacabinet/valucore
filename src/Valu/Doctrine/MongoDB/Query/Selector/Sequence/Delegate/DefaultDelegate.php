@@ -244,29 +244,39 @@ class DefaultDelegate implements DelegateInterface
     
     protected function applyPathSelector(SimpleSelector\Path $pathSelector){
         
-        $path = $this->translatePathArray($pathSelector->getPathItems());
-        
-        // Apply expression that causes this query to return null
-        if (!$path) {
+        if (sizeof($pathSelector->getPathItems())) {
+            $path = $this->translatePathArray($pathSelector->getPathItems());
+            
+            // Apply expression that causes this query to return null
+            if (!$path) {
+                $selector = new SimpleSelector\Attribute(
+                        '_id',
+                        SimpleSelector\Attribute::OPERATOR_EQUALS,
+                        false
+                );
+            
+                return $this->applyAttributeSelector($selector);
+            }
+            
+            $condition =    '^' .
+                    SimpleSelector\Path::PATH_SEPARATOR .
+                    implode(SimpleSelector\Path::PATH_SEPARATOR, $path) .
+                    '$';
+            
             $selector = new SimpleSelector\Attribute(
-                '_id',
-                SimpleSelector\Attribute::OPERATOR_EQUALS,
-                false
+                    $this->getOption('path_attribute'),
+                    SimpleSelector\Attribute::OPERATOR_REG_EXP,
+                    $condition
             );
             
-            return $this->applyAttributeSelector($selector);
+        } else {
+            // Query root
+            $selector = new SimpleSelector\Attribute(
+                $this->getOption('path_attribute'),
+                SimpleSelector\Attribute::OPERATOR_EQUALS,
+                SimpleSelector\Path::PATH_SEPARATOR
+            );
         }
-        
-        $condition =    '^' .
-                        SimpleSelector\Path::PATH_SEPARATOR . 
-                        implode(SimpleSelector\Path::PATH_SEPARATOR, $path) .
-                        '$';
-        
-        $selector = new SimpleSelector\Attribute(
-            $this->getOption('path_attribute'),
-            SimpleSelector\Attribute::OPERATOR_REG_EXP,
-            $condition
-        );
     
         return $this->applyAttributeSelector($selector);
     }
