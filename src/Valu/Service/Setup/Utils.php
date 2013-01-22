@@ -73,7 +73,7 @@ class Utils{
                     $this->getModuleVersion($name));
             }
         }
-    
+        
         // Download module and its dependencies
         $fork = $this->download($module, $version);
     
@@ -103,7 +103,7 @@ class Utils{
     
                 $operation = 'upgrade';
                 $args = array(
-                    'from' => $currentVersions[$depModule]
+                    'from' => $current[$depModule]
                 );
             } else {
                 $operation = 'setup';
