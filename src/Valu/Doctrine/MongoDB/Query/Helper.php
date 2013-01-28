@@ -6,6 +6,10 @@ use Valu\Doctrine\MongoDB\Query\Selector\Sequence;
 use Doctrine\ODM\MongoDB\Query\Expr;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ODM\MongoDB\Query\Builder;
+use Doctrine\MongoDB\Cursor as BaseCursor;
+use Doctrine\ODM\MongoDB\Cursor;
+use Doctrine\ODM\MongoDB\LoggableCursor;
+use Doctrine\MongoDB\LoggableCursor as BaseLoggableCursor;
 
 /**
  * DoctineMongoDB query helper
@@ -314,10 +318,22 @@ class Helper
             // Define default element name and corresponding class name. 
             $documents[Sequence::DEFAULT_ELEMENT] = $this->repository->getClassName();
             
-            return $documents;
-        } else {
-            return $this->documentNames;
+            $this->setDocumentNames($documents);
         }
+        
+        return $this->documentNames;
+    }
+    
+    /**
+     * Set associated document names
+     *
+     * @param array $names
+     * @return \Valu\Doctrine\MongoDB\Query\Helper
+     */
+    public function setDocumentNames(array $names)
+    {
+        $this->documentNames = $names;
+        return $this;
     }
     
     /**
@@ -354,18 +370,6 @@ class Helper
     public function disableIdDetection()
     {
         $this->idLength = null;
-        return $this;
-    }
-    
-    /**
-     * Set associated document names
-     * 
-     * @param array $names
-     * @return \Valu\Doctrine\MongoDB\Query\Helper
-     */
-    public function setDocumentNames(array $names)
-    {
-        $this->documentNames = $names;
         return $this;
     }
     
@@ -477,41 +481,54 @@ class Helper
                 $args[$cmd] = null;
             }
         }
-    
-        $qb = $this->repository->createQueryBuilder();
-        $this->applyFields($qb, $fields);
         
-        foreach ($this->getDocumentNames() as $document) {
-            $documentQuery = $this->getUow()
-                ->getDocumentPersister($document)
-                ->prepareQuery($query);
-            
-            $expr = $qb->expr();
-            $expr->setQuery($documentQuery);
-            
-            $qb->addOr($expr);
+        $dm    = $this->repository->getDocumentManager();
+        $coll  = $dm->getDocumentCollection($this->repository->getClassName());
+        
+        // Prepare query
+        $query = $this->getUow()
+            ->getDocumentPersister($this->repository->getDocumentName())
+            ->prepareQuery($query);
+        
+        // Retrieve cursor by performing find
+        $cursor = $coll->find($query);
+        
+        // Apply fields
+        if (is_string($fields)) {
+            $cursor->fields(array($fields => true));
+        } elseif (is_array($fields)) {
+            $cursor->fields($fields);
         }
-    
+        
         // Apply internal commands
         if (null !== $args['sort']) {
-            $qb->sort($args['sort']);
+            $cursor->sort($args['sort']);
         }
     
         if (null !== $args['limit']) {
-            $qb->limit($args['limit']);
+            $cursor->limit($args['limit']);
         }
     
         if (null !== $args['offset']) {
-            $qb->skip($args['offset']);
-        }
-    
-        if ($mode == self::FIND_MANY) {
-            $result = $qb->getQuery()->execute();
-        } else {
-            $qb->limit(1);
-            $result = $qb->getQuery()->getSingleResult();
+            $cursor->skip($args['offset']);
         }
         
+        // Wrap cursor
+        $newCursor = $this->wrapCursor($cursor);
+        
+        // No hydration needed, when fields are present
+        if ($fields) {
+            $newCursor->hydrate(false);
+        }
+        
+        // Fetch a single result or cursor
+        if ($mode == self::FIND_ONE) {
+            $result = $newCursor->getSingleResult();
+        } else {
+            $result = $newCursor;
+        }
+        
+        // Prepare result
         return $this->prepareResult($result, $fields, $mode);
     }
     
@@ -665,6 +682,50 @@ class Helper
             return $value;
         } else {
             return null;
+        }
+    }
+    
+    private function getDocumentCollection()
+    {
+        return $this->getDocumentManager()->getDocumentCollection(
+            $this->repository->getClassName());
+    }
+    
+    /**
+     * Wraps the supplied base cursor as an ODM one.
+     *
+     * @param Doctrine\MongoDB\Cursor $cursor The base cursor
+     *
+     * @return Cursor An ODM cursor
+     */
+    private function wrapCursor(BaseCursor $cursor)
+    {
+        $dm = $this->getDocumentManager();
+        $coll = $this->getDocumentCollection();
+        
+        if ($cursor instanceof BaseLoggableCursor) {
+            return new LoggableCursor(
+                $dm->getConnection(),
+                $coll,
+                $dm->getUnitOfWork(),
+                $this->repository->getClassMetadata(),
+                $cursor,
+                $cursor->getQuery(),
+                $cursor->getFields(),
+                $dm->getConfiguration()->getRetryQuery(),
+                $cursor->getLoggerCallable()
+            );
+        } else {
+            return new Cursor(
+                $dm->getConnection(),
+                $coll,
+                $dm->getUnitOfWork(),
+                $this->repository->getClassMetadata(),
+                $cursor,
+                $cursor->getQuery(),
+                $cursor->getFields(),
+                $dm->getConfiguration()->getRetryQuery()
+            );
         }
     }
 }
