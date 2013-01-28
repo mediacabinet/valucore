@@ -464,6 +464,9 @@ class Helper
     /**
      * Perform find by array of criteria
      * 
+     * This functionality is partly copied from DocumentPersister class.
+     *
+     * @see \Doctrine\ODM\MongoDB\Persisters\DocumentPersister::loadAll()
      * @param array $query
      * @param array|string $fields
      * @param string $mode
@@ -693,8 +696,11 @@ class Helper
     
     /**
      * Wraps the supplied base cursor as an ODM one.
+     * 
+     * This functionality is copied from DocumentPersister class.
      *
-     * @param Doctrine\MongoDB\Cursor $cursor The base cursor
+     * @see \Doctrine\ODM\MongoDB\Persisters\DocumentPersister::wrapCursor()
+     * @param \Doctrine\MongoDB\Cursor $cursor The base cursor
      *
      * @return Cursor An ODM cursor
      */
