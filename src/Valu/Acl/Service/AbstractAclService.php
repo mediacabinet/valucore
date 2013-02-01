@@ -115,6 +115,7 @@ abstract class AbstractAclService extends AbstractService
     {
         $this->acl = null;
         $this->getCache()->removeItem($this->getCacheId());
+        return true;
     }
     
     /**
