@@ -8,9 +8,9 @@ use	Valu\Service\ServiceInterface;
 use Valu\Service\Invoker\DefinitionBased;
 use Zend\Cache\Storage\StorageInterface;
 use	Zend\Loader\PluginClassLoader;
+use Zend\EventManager\EventManagerInterface;
 use	Zend\ServiceManager\ServiceLocatorInterface;
 use	Zend\ServiceManager\ServiceLocatorAwareInterface;
-use Zend\EventManager\EventManager;
 
 class Loader{
 	
@@ -295,10 +295,10 @@ class Loader{
 	 * 
 	 * This method should not be called outside Broker.
 	 * 
-	 * @param EventManager $eventManager
+	 * @param EventManagerInterface $eventManager
 	 * @param string $name Name of the service
 	 */
-	public function attachListeners(EventManager $eventManager, $name)
+	public function attachListeners(EventManagerInterface $eventManager, $name)
 	{
 	    $normalName = $this->normalizeService($name);
 	    
