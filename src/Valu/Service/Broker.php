@@ -128,6 +128,10 @@ class Broker{
 	 */
 	public function getLoader()
 	{
+	    if (!$this->loader) {
+	        $this->loader = new Loader();
+	    }
+	    
 		return $this->loader;
 	}
 	
