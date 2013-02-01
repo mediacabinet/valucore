@@ -39,7 +39,7 @@ class InputFilterService
         
         switch($e->getOperation()){
             case 'reload':
-                $this->reload($e->getParam('name', $e->getParam(0)));
+                return $this->reload($e->getParam('name', $e->getParam(0)));
                 break;
             case 'get':
                 return $this->get($e->getParam('name', $e->getParam(0)));
