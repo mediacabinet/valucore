@@ -142,7 +142,11 @@ class Auth extends AbstractPlugin
                 
                 $enabled = $service->disableFilter('access');
                 
-                self::$groups = $service->getMemberships($this->getId());
+                try {
+                    self::$groups = $service->getMemberships($this->getId());
+                } catch(\Exception $e) {
+                    return array();
+                }
                 
                 if ($enabled) {
                     $service->enableFilter('access');
