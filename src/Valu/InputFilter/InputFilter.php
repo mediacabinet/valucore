@@ -1,11 +1,25 @@
 <?php
 namespace Valu\InputFilter;
 
+use Zend\InputFilter\Input;
+
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\InputFilter\InputFilter as ZendInputFilter;
 use Zend\InputFilter\InputFilterInterface;
 
-class InputFilter extends ZendInputFilter
+class InputFilter 
+    extends ZendInputFilter
+    implements ServiceLocatorAwareInterface
 {
+    
+    /**
+     * Service locator
+     * 
+     * @var ServiceLocatorInterface
+     */
+    private $serviceLocator;
+    
     /**
      * Filter data
      * 
@@ -73,6 +87,56 @@ class InputFilter extends ZendInputFilter
         return $result;
     }
     
+    /**
+     * @see \Zend\ServiceManager\ServiceLocatorAwareInterface::getServiceLocator()
+     */
+    public function getServiceLocator()
+    {
+        return $this->serviceLocator;
+    }
+    
+    /**
+     * Inject service locator to all inputs and their filter and validator
+     * chain plugin managers
+     * 
+     * Use this method to inject service locator so that it becomes available
+     * for filters and validators. This is usefuly especially for validators or
+     * filters that are serialized and cannot contain reference to service locator.
+     * 
+     * @see \Zend\ServiceManager\ServiceLocatorAwareInterface::setServiceLocator()
+     */
+    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
+    {
+        $this->serviceLocator = $serviceLocator;
+        
+        foreach ($this->inputs as $input) {
+            
+            if ($input instanceof ServiceLocatorAwareInterface) {
+                $input->setServiceLocator($serviceLocator);
+            } elseif($input instanceof Input) {
+                $input->getFilterChain()
+                ->getPluginManager()
+                ->setServiceLocator($serviceLocator);
+                
+                $input->getValidatorChain()
+                ->getPluginManager()
+                ->setServiceLocator($serviceLocator);
+            }
+        }
+    }
+    
+    public function __sleep()
+    {
+        // Serialize only inputs
+        return array('inputs');
+    }
+    
+    /**
+     * Set validation group by filter data, using data keys
+     * as validation group properties
+     * 
+     * @param array $data
+     */
     private function setValidationGroupByData(array $data)
     {
         $group = array_keys($data);
@@ -91,6 +155,11 @@ class InputFilter extends ZendInputFilter
         $this->setValidationGroup($group);
     }
     
+    /**
+     * Fetch child input filters
+     * 
+     * @return multitype:\Zend\InputFilter\InputFilterInterface
+     */
     private function getSubInputFilters()
     {
         $inputFilters = array();
