@@ -25,8 +25,6 @@ class StaticAuth extends AbstractService
     
     public function authenticate(MvcEvent $event)
     {
-        $request = $event->getRequest();
-        $response = $event->getResponse();
         
         if ($this->getIdentity()) {
             $result = new Result(Result::SUCCESS, $this->getIdentity());
