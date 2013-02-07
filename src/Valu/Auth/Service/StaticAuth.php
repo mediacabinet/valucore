@@ -1,8 +1,9 @@
 <?php
 namespace Valu\Auth\Service;
 
-use Zend\Authentication\Result;
+use Zend\Mvc\MvcEvent;
 
+use Zend\Authentication\Result;
 use Valu\Service\AbstractService;
 
 class StaticAuth extends AbstractService
@@ -22,8 +23,11 @@ class StaticAuth extends AbstractService
         $this->identity = null;
     }
     
-    public function authenticate(Request $request, Response $response)
+    public function authenticate(MvcEvent $event)
     {
+        $request = $event->getRequest();
+        $response = $event->getResponse();
+        
         if ($this->getIdentity()) {
             $result = new Result(Result::SUCCESS, $this->getIdentity());
         } else {
