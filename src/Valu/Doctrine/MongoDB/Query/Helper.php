@@ -593,7 +593,13 @@ class Helper
             if (is_string($fields)) {
                 $queryBuilder->select($fields);
             } else {
-                call_user_func_array(array($queryBuilder, 'select'), $fields);
+                foreach ($fields as $key => $value) {
+                    if (is_numeric($key)) {
+                        $queryBuilder->select($value);
+                    } elseif ($value == true) {
+                        $queryBuilder->select($key);
+                    }
+                }
             }
         }
     }
