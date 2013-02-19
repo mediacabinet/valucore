@@ -2,27 +2,19 @@
 namespace Valu\Service\Setup;
 
 use Valu\Service\Exception\MissingParameterException;
-
-use Valu\Service\AbstractService,
-	Valu\Service\Setup\Utils,
-	Valu\Service\Broker,
-	Valu\Version\SoftwareVersion,
-	Zend\ServiceManager\ServiceManagerAwareInterface,
-	Zend\ServiceManager\ServiceManager;
+use Valu\Service\AbstractService;
+use Valu\Service\Setup\Utils;
+use Valu\Service\Broker;
+use Valu\Version\SoftwareVersion;
+use Zend\ServiceManager\ServiceLocatorInterface;
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
 
 abstract class AbstractSetup 
     extends AbstractService
-    implements ServiceManagerAwareInterface
+    implements ServiceLocatorAwareInterface
 {
     
     protected $optionsClass = 'Valu\Service\Setup\SetupOptions';
-    
-    /**
-     * ServiceManager
-     * 
-     * @var ServiceManager
-     */
-    protected $serviceManager;
     
     /**
      * Service broker instance
@@ -121,24 +113,7 @@ abstract class AbstractSetup
 	 * the module settings by default.
 	 */
     public abstract function uninstall(array $options = array());
-    
-    /**
-     * (non-PHPdoc)
-     * @see Zend\ServiceManager.ServiceManagerAwareInterface::setServiceManager()
-     */
-    public function setServiceManager(ServiceManager $serviceManager){
-        $this->serviceManager = $serviceManager;
-    }
-    
-    /**
-     * Retrieve service manager
-     * 
-     * @return \Zend\ServiceManager\ServiceManager
-     */
-    public function getServiceManager(){
-        return $this->serviceManager;
-    }
-    
+
     /**
      * Retrieve service broker
      *
@@ -147,7 +122,7 @@ abstract class AbstractSetup
     public function getServiceBroker()
     {
         if(!$this->serviceBroker){
-            $this->serviceBroker = $this->getServiceManager()->get('ServiceBroker');
+            $this->serviceBroker = $this->getServiceLocator()->get('ServiceBroker');
         }
         
     	return $this->serviceBroker;
@@ -182,7 +157,7 @@ abstract class AbstractSetup
     protected function utils()
     {
         if(!$this->utils){
-            $this->utils = $this->getServiceManager()->get('SetupUtils');
+            $this->utils = $this->getServiceLocator()->get('SetupUtils');
         }
         
         return $this->utils;
