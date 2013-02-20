@@ -301,7 +301,7 @@ class Loader{
 	public function attachListeners(EventManagerInterface $eventManager, $name)
 	{
 	    $normalName = $this->normalizeService($name);
-	    
+
 	    if( !isset($this->services[$normalName]) || 
             !sizeof($this->services[$normalName]) ||
 	        !sizeof($this->unAttached[$normalName])){
@@ -312,7 +312,7 @@ class Loader{
 	    // Attach all
 	    foreach($this->unAttached[$normalName] as $id){
             $eventManager->attach(
-                $name, 
+                $normalName, 
                 $this->load($id), 
                 $this->services[$normalName][$id]['priority']
             );

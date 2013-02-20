@@ -279,7 +279,7 @@ class Broker{
 		
 		$event 	= new ServiceEvent();
 		$event->setParams($argv);
-		$event->setName($service);
+		$event->setName(strtolower($service));
 		$event->setService($service);
 		$event->setOperation($operation);
 		$event->setContext($context);
