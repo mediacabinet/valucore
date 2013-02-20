@@ -59,6 +59,7 @@ class Utils{
      */
     public function install($module, $version, $options = null)
     {
+        $module = strtolower($module);
         $options = is_null($options) ? array() : $options;
         
         $fork    = false;
@@ -100,7 +101,7 @@ class Utils{
     
             if (isset($current[$depModule])
                 && $current[$depModule]->isLt($depVersion)) {
-    
+                
                 $operation = 'upgrade';
                 $args = array(
                     'from' => $current[$depModule]
@@ -240,7 +241,7 @@ class Utils{
         
         if(null === $version){
             throw new \Exception(sprintf(
-                "Unable to resolve dependencies for %s. Module definitions are missing or incomplete.", 
+                "Unable to resolve dependencies for module '%s'. Module definitions are missing or incomplete.", 
                 $module
             ));
         }
@@ -267,6 +268,8 @@ class Utils{
      */
     protected function resolveDepsRecursive($module, $version, \ArrayObject $resolved){
     
+        $module = strtolower($module);
+        
         // replace if exists with lower version number
         if($resolved->offsetExists($module)){
             $new = new SoftwareVersion($version);
@@ -332,7 +335,7 @@ class Utils{
                 if (($file->isDir() && substr($file->getBasename(), 0, 1) !== '.') 
                     || ($file->isFile() && $file->getExtension() == 'phar')) {
                     
-                    $modules[$file->getRealPath()] = $file->getBasename();
+                    $modules[$file->getRealPath()] = strtolower($file->getBasename());
                 }
             }
         }
@@ -348,6 +351,7 @@ class Utils{
      */
     public function locateModule($module)
     {
+        $module = strtolower($module);
         $dirs = $this->getOption('module_dirs');
     
         foreach($dirs as $dir){
@@ -374,7 +378,7 @@ class Utils{
         
         if (class_exists($ns[0] . '\Module')) {
             $reflection = new \ReflectionClass($ns[0] . '\Module');
-            return basename(dirname($reflection->getFileName()));
+            return strtolower(basename(dirname($reflection->getFileName())));
         } else {
             $path = $reflection->getFileName();
             $dirs = $this->getOption('module_dirs');
@@ -387,7 +391,7 @@ class Utils{
                     $dir = ltrim($dir, DIRECTORY_SEPARATOR);
             
                     $a = explode(DIRECTORY_SEPARATOR, $dir);
-                    return $a[0];
+                    return strtolower($a[0]);
                 }
             }
         }
@@ -420,6 +424,8 @@ class Utils{
      */
     public function getModuleDefinition($module)
     {
+        $module = strtolower($module);
+        
         if (!array_key_exists($module, $this->definitions)) {
             $path = $this->locateModule($module);
             $config = array();
@@ -453,6 +459,8 @@ class Utils{
      */
     public function getModuleDeps($module)
     {
+        $module = strtolower($module);
+        
         if (!isset($this->deps[$module])) {
             $map     = array();
             $deps    = array();
@@ -543,24 +551,25 @@ class Utils{
     	return false;
     }
     
-    protected function getRepositoryQueue(){
-        $repos = $this->getOption('repositories');
-        
-        $queue = new \SplPriorityQueue();
-        foreach($repos as $specs){
-            $queue->insert($specs['url'], $specs['priority']);
-        }
-        
-        return $queue;
-    }
-    
+    /**
+     * Retrieve setup service Worker for module
+     * 
+     * @param string $module
+     * @return \Valu\Service\Broker\Worker
+     */
     public function initSetupService($module){
-        $moduleSetup = $module . '.Setup';  
+        $moduleSetup = $module . '.setup';
         return $this->getServiceBroker()->service($moduleSetup);
     }
     
+    /**
+     * Does a setup service exist for module?
+     * 
+     * @param string $module
+     * @return boolean
+     */
     public function hasSetupService($module){
-        $moduleSetup = $module . '.Setup';
+        $moduleSetup = $module . '.setup';
         return $this->getServiceBroker()->exists($moduleSetup);
     }
     
