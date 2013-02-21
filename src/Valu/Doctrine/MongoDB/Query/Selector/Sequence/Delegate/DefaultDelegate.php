@@ -455,8 +455,13 @@ class DefaultDelegate implements DelegateInterface
             );
             
             return true;
-        }
-        else{
+        } elseif ($pseudoSelector->getClassName() == 'limit') {
+            $this->getQueryBuilder()->limit(intval($pseudoSelector->getClassValue()));
+            return true;
+        } elseif (in_array($pseudoSelector->getClassName(), ['startingFrom', 'offset'])) {
+            $this->getQueryBuilder()->offset(intval($pseudoSelector->getClassValue()));
+            return true;
+        } else{
             return false;
         }
     }
