@@ -168,6 +168,14 @@ class Sequence
         }
         
         /**
+         * This array maintains the hashes of such queries
+         * that contain at least one field query,
+         * and can thus be "joined" to another expression using
+         * AND or OR.
+         */
+        $joinable = array();
+        
+        /**
          * Apply same sequence for each element
          */
         foreach($elements as $element){
@@ -187,17 +195,14 @@ class Sequence
              * Apply each simple selector in sequence using
              * delegate
              */
+            $exprHash = spl_object_hash($expr);
+            
             foreach ($items as $item){
                 if($item instanceof SimpleSelectorInterface){
                     
                     // Use delegate to apply simple selector
-                    if (!$this->getDelegate()->applySimpleSelector($this, $queryBuilder, $expr, $item)) {
-                        
-                        // Ensure that the expression contains at least one rule
-                        // that always matches
-                        if (sizeof($items) == 1 && $element == self::DEFAULT_ELEMENT) {
-                            $expr->field('_id')->exists(true);
-                        }
+                    if ($this->getDelegate()->applySimpleSelector($this, $queryBuilder, $expr, $item)) {
+                        $joinable[$exprHash] = true;
                     }
                 }
                 else{
@@ -214,23 +219,31 @@ class Sequence
             /**
              * Join each element's sequence with logical OR
              */
-            if($andExpr !== null){
+            if($andExpr !== null && isset($joinable[$exprHash])){
                 $andExpr->addOr($expr);
+                
+                // The $andExpr is now safe to be joined to another expression
+                $joinable[spl_object_hash($andExpr)] = true;
             }
         }
         
         /**
          * Join element specific expressions with AND
          */
-        if($andExpr !== null){
+        if($andExpr !== null && isset($joinable[spl_object_hash($andExpr)])){
             $expression->addAnd($andExpr);
+            
+            // The $expression is now safe to be joined to another expression
+            $joinable[spl_object_hash($expression)] = true;
         }
         
         /**
          * Apply to query builder
          */
-        if($newExpression){
+        if($newExpression && isset($joinable[spl_object_hash($expression)])){
             $queryBuilder->addAnd($expression);
+        } elseif (!isset($joinable[spl_object_hash($expression)])) {
+            $expression->field('_id')->exists(true);
         }
     }
     
