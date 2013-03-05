@@ -199,11 +199,13 @@ class UploadListenerAggregate implements ListenerAggregateInterface
     {
         if (isset($this->tmpFiles[$id])) {
             foreach ($this->tmpFiles[$id] as $tmpFile) {
-                unlink($tmpFile);
-                rmdir(dirname($tmpFile));
+                
+                if (file_exists($tmpFile)) {
+                    unlink($tmpFile);
+                }
+                
+                unset($this->tmpFiles[$id]);
             }
-        
-            unset($this->tmpFiles[$id]);
         }
         
         return $this;
@@ -268,7 +270,7 @@ class UploadListenerAggregate implements ListenerAggregateInterface
             if (!file_exists($targetDir) && mkdir($targetDir)) {
                 move_uploaded_file($tmpFile, $file);
                 
-                $files[] = $file;
+                $files[] = realpath($file);
             }
         }
 
