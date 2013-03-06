@@ -119,6 +119,10 @@ class DocumentManagerFactory implements FactoryInterface
                     break;
             }
             
+            if ($cache && !empty($appConfig['cache']['options']['namespace'])) {
+                $cache->setNamespace($appConfig['cache']['options']['namespace']);
+            }
+            
             if ($cache) {
                 $odmConfig->setMetadataCacheImpl($cache);
             }
