@@ -17,31 +17,36 @@ abstract class AbstractServiceTestCase extends TestCase
             'id'         => 'b0532c8099953acabc060770eb296f86',
             'account'    => '3a33ebb8749638479a58a6bc2c68262d',
             'roles'      => array('/' => 'member'),
-            'groups'     => array('bcdd66f7e96f3690b71846a056662ab9')
+            'groups'     => array('bcdd66f7e96f3690b71846a056662ab9'),
+            'email'      => 'member@invalid.email.com'
         ),
         'alt-member' => array(
             'id'         => 'a2532c8099953acabc060770eb296f86',
             'account'    => '99aaccb8749638479a58a6bc2c68262d',
             'roles'      => array('/' => 'member'),
-            'groups'     => array('1122aaffe96f3690b71846a056662ab9')
+            'groups'     => array('1122aaffe96f3690b71846a056662ab9'),
+            'email'      => 'alt-member@invalid.email.com'
         ),
         'admin' => array(
             'id'         => 'aa114c8099953acabc060770eb296f86',
             'account'    => '3a33ebb8749638479a58a6bc2c68262d',
             'roles'      => array('/' => 'member', '/account/3a33ebb8749638479a58a6bc2c68262d/' => 'admin'),
-            'groups'     => array('bcdd66f7e96f3690b71846a056662ab9')
+            'groups'     => array('bcdd66f7e96f3690b71846a056662ab9'),
+            'email'      => 'admin@invalid.email.com'
         ),
         'alt-admin' => array(
             'id'         => 'aabbcc8099953acabc060770eb296f86',
             'account'    => '99aaccb8749638479a58a6bc2c68262d',
             'roles'      => array('/' => 'member', '/account/99aaccb8749638479a58a6bc2c68262d/' => 'admin'),
-            'groups'     => array('1122aaffe96f3690b71846a056662ab9')
+            'groups'     => array('1122aaffe96f3690b71846a056662ab9'),
+            'email'      => 'alt-admin@invalid.email.com'
         ),
         'superuser'      => array(
             'id'         => 'a1112c8099953acabc060770eb296fff',
             'account'    => 'aa33ebb8749638479a58a6bc2c6826dd',
             'roles'      => array('/' => 'superuser'),
-            'groups'     => array('66aa11f7e96f3690b71846a056662ab9')
+            'groups'     => array('66aa11f7e96f3690b71846a056662ab9'),
+            'email'      => 'superuser@invalid.email.com'
         )
     );
     
