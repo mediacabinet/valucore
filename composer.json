@@ -15,7 +15,7 @@
     "autoload": {
         "psr-0": {
             "Valu\\": "src/Valu",
-            "Valu\\Test": "tests/"
+            "Valu\\Test\\": "tests"
         }
     }
 }
