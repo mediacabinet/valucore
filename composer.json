@@ -9,9 +9,7 @@
     "homepage": "http://www.mediacabinet.fi/",
     "license": "BSD-3-Clause",
     "require": {
-        "php": ">=5.4.0"
-    },
-    "require-dev": {
+        "php": ">=5.4.0",
         "zendframework/zendframework": ">=2.0"
     },
     "autoload": {
