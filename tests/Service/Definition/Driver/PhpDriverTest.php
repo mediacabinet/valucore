@@ -1,9 +1,9 @@
 <?php
-namespace Valu\Test\Service\Definition\Driver;
+namespace ValuTest\Service\Definition\Driver;
 
 use Valu\Version\SoftwareVersion,
 	Valu\Version\Exception\InvalidVersionException,
-	Valu\Test\Service\TestAsset\MockService,
+	ValuTest\Service\TestAsset\MockService,
 	Valu\Service\Definition\Driver\PhpDriver;
 
 class PhpDriverTest extends \PHPUnit_Framework_TestCase

@@ -1,5 +1,5 @@
 <?php
-namespace ValuCore\Test\Acl;
+namespace ValuTest\Selector;
 
 use Valu\Selector,
     Valu\Selector\SimpleSelector\AbstractSelector;

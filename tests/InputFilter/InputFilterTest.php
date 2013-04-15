@@ -25,7 +25,7 @@ class InputFilterTest extends TestCase
         $input = new Input('test');
         $input->getFilterChain()->getPluginManager()->setInvokableClass(
             'testfilter', 
-            'Valu\Test\InputFilter\TestAsset\TestFilter');
+            'ValuTest\InputFilter\TestAsset\TestFilter');
         
         $input->getFilterChain()->attachByName('testfilter');
         
@@ -47,7 +47,7 @@ class InputFilterTest extends TestCase
         $input = new Input('test');
         $input->getValidatorChain()->getPluginManager()->setInvokableClass(
                 'testvalidator',
-                'Valu\Test\InputFilter\TestAsset\TestValidator');
+                'ValuTest\InputFilter\TestAsset\TestValidator');
         
         $input->getValidatorChain()->addByName('testvalidator');
         

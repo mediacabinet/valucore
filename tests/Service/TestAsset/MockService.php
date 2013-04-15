@@ -1,5 +1,5 @@
 <?php
-namespace Valu\Test\Service\TestAsset;
+namespace ValuTest\Service\TestAsset;
 
 use Valu\Service\ServiceInterface;
 use Valu\Service\Definition\DriverInterface as DefinitionDriver;

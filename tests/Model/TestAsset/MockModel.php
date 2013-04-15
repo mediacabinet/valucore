@@ -1,5 +1,5 @@
 <?php
-namespace Valu\Test\Model\TestAsset;
+namespace ValuTest\Model\TestAsset;
 
 use Valu\Model\ArrayAdapter\ProviderInterface;
 

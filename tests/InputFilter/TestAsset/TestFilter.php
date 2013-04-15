@@ -1,5 +1,5 @@
 <?php
-namespace Valu\Test\InputFilter\TestAsset;
+namespace ValuTest\InputFilter\TestAsset;
 
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;

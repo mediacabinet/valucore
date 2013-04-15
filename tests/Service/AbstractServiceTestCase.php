@@ -1,5 +1,5 @@
 <?php
-namespace Valu\Test\Service;
+namespace ValuTest\Service;
 
 use Valu\Service\Plugin\Auth;
 

@@ -1,7 +1,7 @@
 <?php
-namespace Valu\Test\Acl;
+namespace ValuTest\Acl;
 
-use Valu\Test\InputFilter\TestAsset\TestDelegate;
+use ValuTest\InputFilter\TestAsset\TestDelegate;
 
 use Valu\InputFilter\Configurator\Delegate\ChildInputFilterDetector;
 

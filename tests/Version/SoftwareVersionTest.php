@@ -1,5 +1,5 @@
 <?php
-namespace Valu\Test\Version;
+namespace ValuTest\Version;
 
 use Valu\Version\SoftwareVersion,
 	Valu\Version\Exception\InvalidVersionException;

@@ -1,5 +1,5 @@
 <?php
-namespace Valu\Test\Acl;
+namespace ValuTest\Acl;
 
 use Doctrine\ODM\MongoDB\DocumentRepository;
 

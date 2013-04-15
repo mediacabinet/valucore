@@ -1,5 +1,5 @@
 <?php
-namespace Valu\Test\InputFilter\TestAsset;
+namespace ValuTest\InputFilter\TestAsset;
 
 use Valu\InputFilter\Configurator\Delegate\DelegateInterface;
 use \ArrayObject;

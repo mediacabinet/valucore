@@ -1,5 +1,5 @@
 <?php
-namespace ValuCore\Test\Acl;
+namespace ValuTest\Selector;
 
 use Valu\Selector\Parser\AttributeSelectorParser;
 

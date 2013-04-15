@@ -1,10 +1,10 @@
 <?php
-namespace Valu\Test\Model;
+namespace ValuTest\Model;
 
 use Valu\Model\ArrayAdapter\ObjectRecursionDelegate;
 use Valu\Model\ArrayAdapter\RecursionDelegate;
 use Valu\Model\ArrayAdapter;
-use Valu\Test\Model\TestAsset\MockModel;
+use ValuTest\Model\TestAsset\MockModel;
 
 class ArrayAdapterTest extends \PHPUnit_Framework_TestCase
 {
