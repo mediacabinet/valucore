@@ -4,13 +4,10 @@ namespace Valu\InputFilter\Service;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Valu\InputFilter\InputFilterRepository;
-use Valu\Service\Exception\OperationNotFoundException;
-use Valu\Service\ServiceInterface;
-use Valu\Service\ServiceEvent;
+use ValuSo\Annotation as ValuService;
 
 class InputFilterService
-    implements  ServiceInterface, 
-                ServiceLocatorAwareInterface
+    implements ServiceLocatorAwareInterface
 {
     /**
      * Input filter repository
@@ -18,13 +15,6 @@ class InputFilterService
      * @var \Valu\InputFilter\InputFilterRepository
      */
     protected $repository;
-    
-    /**
-     * Service event
-     * 
-     * @var ServiceEvent
-     */
-    protected $event;
     
     /**
      * Service locator
@@ -41,33 +31,6 @@ class InputFilterService
     public function __construct(InputFilterRepository $inputFilterRepository)
     {
         $this->repository = $inputFilterRepository;
-    }
-    
-    public function __invoke(ServiceEvent $e)
-    {
-        $this->event = $e;
-        
-        switch($e->getOperation()){
-            case 'reload':
-                return $this->reload($e->getParam('name', $e->getParam(0)));
-                break;
-            case 'get':
-                return $this->get($e->getParam('name', $e->getParam(0)));
-                break;
-            default:
-                throw new OperationNotFoundException(
-                    sprintf("Service doesn't implement operation %s", $e->getOperation())
-                );
-                break;
-        }
-    }
-    
-    /**
-     * @see \Valu\Service\ServiceInterface::getEvent()
-     */
-    public function getEvent()
-    {
-        return $this->event;
     }
     
     /**
@@ -104,6 +67,7 @@ class InputFilterService
     
     /**
      * @see \Zend\ServiceManager\ServiceLocatorAwareInterface::getServiceLocator()
+     * @ValuService\Exclude
      */
     public function getServiceLocator()
     {
@@ -112,6 +76,7 @@ class InputFilterService
     
     /**
      * @see \Zend\ServiceManager\ServiceLocatorAwareInterface::setServiceLocator()
+     * @ValuService\Exclude
      */
     public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
     {
