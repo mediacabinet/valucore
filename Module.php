@@ -1,28 +1,7 @@
 <?php
-namespace ValuCore;
-
-use Zend\ModuleManager\Feature;
-
-class Module
-    implements Feature\AutoloaderProviderInterface
-{
-    /**
-     * getAutoloaderConfig() defined by AutoloaderProvider interface.
-     *
-     * @see AutoloaderProvider::getAutoloaderConfig()
-     * @return array
-     */
-    public function getAutoloaderConfig()
-    {
-        return array(
-            'Zend\Loader\ClassMapAutoloader' => array(
-                __DIR__ . '/autoload_classmap.php',
-            ),
-            'Zend\Loader\StandardAutoloader' => array(
-                'namespaces' => array(
-                    'Valu' => __DIR__ . '/src/Valu',
-                ),
-            ),
-        );
-    }
-}
+/**
+ * This file is placed here for compatibility with Zendframework 2's ModuleManager.
+ * It allows usage of this module even without composer.
+ * The original Module.php is in 'src/Valu' in order to respect PSR-0
+ */
+require_once __DIR__ . '/src/Valu/Module.php';
