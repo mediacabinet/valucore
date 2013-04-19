@@ -11,7 +11,7 @@ class InputFilterServiceFactory
     
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
-        $manager = $serviceLocator->get('ValuInputFilterRepository');
+        $manager = $serviceLocator->get('valu.inputfilter.repository');
         
         $service = new InputFilterService($manager);
         return $service;
