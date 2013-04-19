@@ -1,6 +1,7 @@
 <?php
 namespace Valu\InputFilter\ServiceManager;
 
+use Zend\Cache\Storage\StorageInterface;
 use Valu\InputFilter\Configurator\Delegate\ParentInputFilterDetector;
 use Valu\InputFilter\Configurator\Delegate\ChildInputFilterDetector;
 use Valu\InputFilter\Configurator\Delegate\ConfigurationAggregate;
@@ -8,6 +9,7 @@ use Valu\InputFilter\InputFilterRepository;
 use Valu\InputFilter\Configurator;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\ServiceManager\FactoryInterface;
+use Zend\Cache\StorageFactory;
 
 class InputFilterRepositoryFactory
     implements FactoryInterface
@@ -16,20 +18,32 @@ class InputFilterRepositoryFactory
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
         $config = $serviceLocator->get('Configuration');
-        $cache = $serviceLocator->get('ValuCache');
+       
+        // Initialize cache
+        if (isset($config['input_filter']['cache'])) {
+            $cacheConfig = $config['input_filter']['cache'];
+            
+            $cache = StorageFactory::factory($cacheConfig);
+        } else {
+            $cache = $serviceLocator->get('Cache');
+        }
         
         $repository = new InputFilterRepository();
-        $repository->setCache($cache);
+        if ($cache instanceof StorageInterface) {
+            $repository->setCache($cache);
+        }
         
         $configurator = $repository->getConfigurator();
-        $configurator->setCache($cache);
+        if ($cache instanceof StorageInterface) {
+            $configurator->setCache($cache);
+        }
         
         $configurator->getPlugins()->addPeeringServiceManager($serviceLocator);
         
-        // Detect parent input filter as early as possible
+        // Add delegate to detect parent input filter as early as possible
         $configurator->addDelegate(new ParentInputFilterDetector(), null, array(), 10000);
         
-        // Detect child input filters
+        // Add delegate to detect child input filters
         $configurator->addDelegate(new ChildInputFilterDetector(), null, array());
         
         /**
