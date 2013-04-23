@@ -9,6 +9,7 @@ use Valu\InputFilter\InputFilterRepository;
 use Valu\InputFilter\Configurator;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\ServiceManager\FactoryInterface;
+use Zend\ServiceManager\Exception\ServiceNotFoundException;
 use Zend\Cache\StorageFactory;
 
 class InputFilterRepositoryFactory
@@ -25,7 +26,11 @@ class InputFilterRepositoryFactory
             
             $cache = StorageFactory::factory($cacheConfig);
         } else {
-            $cache = $serviceLocator->get('Cache');
+            try {
+                $cache = $serviceLocator->get('Cache');
+            } catch(ServiceNotFoundException $e) {
+                 $cache = null;   
+            }
         }
         
         $repository = new InputFilterRepository();
