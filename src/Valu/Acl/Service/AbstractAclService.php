@@ -1,13 +1,30 @@
 <?php
 namespace Valu\Acl\Service;
 
-use Valu\Service\AbstractService;
+use Zend\ServiceManager\Exception\ServiceNotFoundException;
+
+use Valu\Acl\Role\IdentityRole;
+use Valu\Service\Plugin\Auth\AclRole;
+use ArrayAccess;
 use Valu\Acl\Acl;
+use ValuSo\Annotation as ValuService;
+use ValuSo\Feature;
+use ValuSo\Broker\ServiceBroker;
 use Zend\Cache\Storage\StorageInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 
-abstract class AbstractAclService extends AbstractService
+abstract class AbstractAclService
+    implements Feature\ConfigurableInterface,
+               Feature\ServiceBrokerAwareInterface,
+               Feature\IdentityAwareInterface,
+               ServiceLocatorAwareInterface
 {
+    use Feature\OptionsTrait;
+    use Feature\IdentityTrait;
+    
+    const CACHE_PREFIX = 'valu_acl_';
+    
     protected $optionsClass = 'Valu\Acl\Service\AclServiceOptions';
     
     /**
@@ -16,6 +33,20 @@ abstract class AbstractAclService extends AbstractService
      * @var string
      */
     protected $cacheId;
+    
+    /**
+     * Service broker instance
+     * 
+     * @var \ValuSo\Broker\ServiceBroker
+     */
+    protected $serviceBroker;
+    
+    /**
+     * Service broker instance
+     *
+     * @var \Zend\ServiceManager\ServiceLocatorInterface
+     */
+    protected $serviceLocator;
     
     /**
      * Cache adapter
@@ -46,75 +77,18 @@ abstract class AbstractAclService extends AbstractService
     private $denyAll = false;
     
     /**
-     * Create a new ACL instance
-     * 
-     * @return \Zend\Permissions\Acl\Acl
-     */
-    public function createAcl()
-    {
-        return self::configureAcl();
-    }
-    
-    /**
-     * Retrieve Valu\Acl\Ac instance
-     * 
-     * @return \Valu\Acl\Acl
-     */
-    public function getAcl()
-    {
-        if(!$this->acl){
-            $acl = null;
-            $cached = false;
-            
-            if($this->getCache()){
-                $acl = $this->getCache()->getItem($this->getCacheId());
-
-                if($acl){
-                    $cached = true;
-                }
-            }
-            
-            if(!$acl){
-                // If invoked via service broker, make sure event listeners
-                // have a chance
-                if($this->getEvent() && $this->getServiceBroker()){
-                    $acl = $this->getServiceBroker()
-                        ->service($this->getEvent()->getService())
-                        ->createAcl();
-                }
-                else{
-                    $acl = $this->createAcl();
-                }
-            }
-            
-            if(!$cached && $this->getCache()){
-                $this->getCache()->setItem($this->getCacheId(), $acl);
-            }
-            
-            $this->setAcl($acl);
-        }
-        
-        return $this->acl;
-    }
-    
-    /**
-     * Set Acl instance
-     * 
-     * @param \Valu\Acl\Acl $acl
-     */
-    public function setAcl(Acl $acl)
-    {
-        $this->acl = $acl;
-    }
-    
-    /**
      * Flush (reload) ACL
      * 
+     * @ValuService\Context("*")
      */
     public function flush()
     {
         $this->acl = null;
-        $this->getCache()->removeItem($this->getCacheId());
+        
+        if ($this->getCache()) {
+            $this->getCache()->removeItem($this->getCacheId());
+        }
+        
         return true;
     }
     
@@ -169,6 +143,7 @@ abstract class AbstractAclService extends AbstractService
      * @param string $role
      * @param string|array|null $resource
      * @param string|null $privilege
+     * @return boolean
      */
 	public function isAllowed($role = null, $resource = null, $privilege = null)
 	{
@@ -187,10 +162,71 @@ abstract class AbstractAclService extends AbstractService
 	}
 	
 	/**
+     * Create a new ACL instance
+     * 
+     * @return \Zend\Permissions\Acl\Acl
+     * 
+     * @ValuService\Exclude
+     */
+    public function createAcl()
+    {
+        return self::configureAcl();
+    }
+    
+    /**
+     * Retrieve Valu\Acl\Ac instance
+     * 
+     * @return \Valu\Acl\Acl
+     * 
+     * @ValuService\Exclude
+     */
+    public function getAcl()
+    {
+        if(!$this->acl){
+            $acl = null;
+            $cached = false;
+            
+            if($this->getCache()){
+                $acl = $this->getCache()->getItem($this->getCacheId());
+
+                if($acl){
+                    $cached = true;
+                }
+            }
+            
+            if(!$acl){
+                $acl = $this->createAcl();
+            }
+            
+            if(!$cached && $this->getCache()){
+                $this->getCache()->setItem($this->getCacheId(), $acl);
+            }
+            
+            $this->setAcl($acl);
+        }
+        
+        return $this->acl;
+    }
+    
+    /**
+     * Set Acl instance
+     * 
+     * @param \Valu\Acl\Acl $acl
+     * 
+     * @ValuService\Exclude
+     */
+    public function setAcl(Acl $acl)
+    {
+        $this->acl = $acl;
+    }
+	
+	/**
 	 * Set cache
 	 *
 	 * @param \Zend\Cache\Storage\Adapter $cache
 	 * @return Acl
+	 * 
+	 * @ValuService\Exclude
 	 */
 	public function setCache(StorageInterface $cache){
 	    $this->cache = $cache;
@@ -201,15 +237,67 @@ abstract class AbstractAclService extends AbstractService
 	 * Retrieve cache
 	 *
 	 * @return \Zend\Cache\Storage\Adapter
+	 * 
+	 * @ValuService\Exclude
 	 */
 	public function getCache(){
 	    if(!$this->cache){
-	        $this->setCache($this->getServiceLocator()->get('ValuCache'));
+	        try{
+	            $cache = $this->getServiceLocator()->get('Cache');
+	        } catch (ServiceNotFoundException $e) {
+	            return null;
+	        }
+	        
+	        if ($cache instanceof StorageInterface) {
+	            $this->setCache($cache);
+	        }
 	    }
 	    
 	    return $this->cache;
 	}
 	
+	/**
+     * Retrieve service broker instance
+     * 
+     * @return \ValuSo\Broker\ServiceBroker
+     * 
+     * @ValuService\Exclude
+	 */
+	public function getServiceBroker()
+	{
+	    return $this->serviceBroker;
+	}
+	
+	/**
+     * @see \ValuSo\Feature\ServiceBrokerAwareInterface::setServiceBroker()
+     * 
+     * @ValuService\Exclude
+     */
+    public function setServiceBroker(ServiceBroker $serviceBroker)
+    {
+        $this->serviceBroker = $serviceBroker;
+    }
+    
+    /**
+     * @see \Zend\ServiceManager\ServiceLocatorAwareInterface::getServiceLocator()
+     * 
+     * @ValuService\Exclude
+     */
+    public function getServiceLocator()
+    {
+        return $this->serviceLocator;
+    }
+    
+    /**
+     * @see \Zend\ServiceManager\ServiceLocatorAwareInterface::setServiceLocator()
+     * 
+     * @ValuService\Exclude
+     */
+    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
+    {
+        $this->serviceLocator = $serviceLocator;
+    }
+
 	/**
 	 * Retrieve cache ID
 	 * 
@@ -218,7 +306,7 @@ abstract class AbstractAclService extends AbstractService
 	protected function getCacheId()
 	{
 	    if(!$this->cacheId){
-	        $this->cacheId = md5(str_replace(array('\\', '/', '_'), '-', get_class($this)));
+	        $this->cacheId = md5(str_replace(array('\\', '/', '_'), '-', self::CACHE_PREFIX . get_class($this)));
 	    }
 	    
 	    return $this->cacheId;
@@ -272,6 +360,59 @@ abstract class AbstractAclService extends AbstractService
 	    
 	    return $acl;
 	}
+	
+	/**
+     * Create and retrieve identity aware role for current identity
+     * 
+     * @param string $ns
+     * @return \Valu\Acl\Role\UniversalRole
+     */
+    protected function createIdentityRole($ns = self::ROOT)
+    {
+        if (!$this->identity) {
+            throw new \RuntimeException(
+                'Unable to create identity role, as identity is not set');
+        }
+        
+        $role = $this->getAclRole($ns);
+        
+        $aclRole = new IdentityRole($role, $this->identity);
+        return $aclRole;
+    }
+    
+    /**
+     * Retrieve ACL role by context for authenticated user
+     * 
+     * If no role for given context exists, the
+     * global ACL role is returned.
+     * 
+     * @param string $ns
+     * @return string|null
+     */
+    protected function getAclRole($ns = self::ROOT)
+    {
+        $roles = isset($this->identity['roles']) 
+            ? $this->identity['roles'] : [];
+        
+        $path  = explode('/', $ns);
+        
+        while(sizeof($path)){
+        
+            if (isset($roles[$ns])) {
+                return (is_array($roles[$ns]) ? array_shift($roles[$ns]) : $roles[$ns]);
+            }
+        
+            // remove last empty item (trailing slash)
+            array_pop($path);
+            $ns = implode('/', $path);
+        
+            if (!$ns) {
+                $ns = '/';
+            }
+        }
+        
+        return null;
+    }
 	
 	/**
 	 * Add rules
