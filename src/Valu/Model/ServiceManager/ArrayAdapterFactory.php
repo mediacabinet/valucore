@@ -47,6 +47,8 @@ class ArrayAdapterFactory implements FactoryInterface
             $adapterConfig = isset($config['model_framework']['array_adapter'])
             ? $config['model_framework']['array_adapter'] : null;
             
+            $cache = null;
+            
             if($adapterConfig
                     && isset($adapterConfig['cache']['enabled'])
                     && $adapterConfig['cache']['enabled']){
@@ -58,6 +60,10 @@ class ArrayAdapterFactory implements FactoryInterface
                 } else {
                     $cache = $serviceLocator->get('Cache');
                 }
+            }
+            
+            if (!$cache) {
+                $cache = StorageFactory::factory(array('adapter' => 'memory'));
             }
             
             self::$cache = $cache;
