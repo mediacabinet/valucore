@@ -228,7 +228,6 @@ class DefaultDelegate implements DelegateInterface
             SimpleSelector\Attribute::OPERATOR_IN_LIST,
             $roleSelector->getCondition()
         );
-        
         return $this->applyAttributeSelector($selector);
     }
     

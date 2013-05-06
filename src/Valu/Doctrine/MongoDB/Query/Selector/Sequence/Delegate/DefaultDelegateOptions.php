@@ -11,11 +11,11 @@ class DefaultDelegateOptions extends AbstractOptions{
         'valu_path'     => 'path'
     );
     
-    protected $roleAttribute = 'valu_role';
+    protected $roleAttribute = 'role';
     
-    protected $classAttribute = 'valu_class';
+    protected $classAttribute = 'class';
     
-    protected $pathAttribute = 'valu_path';
+    protected $pathAttribute = 'path';
     
     protected $pathDocument = null;
    
