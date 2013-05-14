@@ -1,5 +1,5 @@
 <?php
-namespace Valu\Model;
+namespace Valu\Model\ArrayAdapter;
 
 use Valu\Model\ArrayAdapter;
 

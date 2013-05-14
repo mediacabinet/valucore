@@ -2,7 +2,7 @@
 return [
     'service_manager' => [
         'factories' => [
-            'ValuModelArrayAdapter' => 'Valu\\Model\\ServiceManager\\ArrayAdapterFactory',
+            'ValuModelArrayAdapter' => 'Valu\\Model\\ArrayAdapter\\ArrayAdapterFactory',
             'valu.inputfilter.repository' => 'Valu\InputFilter\ServiceManager\InputFilterRepositoryFactory',
         ],
         'aliases' => [

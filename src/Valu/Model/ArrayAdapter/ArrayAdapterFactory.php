@@ -1,5 +1,5 @@
 <?php
-namespace Valu\Model\ServiceManager;
+namespace Valu\Model\ArrayAdapter;
 
 use Valu\Model\ArrayAdapter\DateFormatterDelegate;
 use Valu\Model\ArrayAdapter\RecursionDelegate;
@@ -25,11 +25,7 @@ class ArrayAdapterFactory implements FactoryInterface
         $adapter->getDelegates()->insert(
             new RecursionDelegate()        
         );
-        
-        $adapter->getDelegates()->insert(
-            new DateFormatterDelegate()        
-        );
-        
+
         $cache = $this->getCache($serviceLocator);
         
         if ($cache) {
