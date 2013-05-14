@@ -1,9 +1,12 @@
 <?php
 namespace Valu\Model;
 
+use ArrayObject;
 use Valu\Model\ArrayAdapter\ProviderInterface;
+use Valu\Model\ArrayAdapter\Event;
 use Zend\Stdlib\PriorityQueue;
 use Zend\Cache\Storage\StorageInterface;
+use Zend\EventManager\EventManager;
 
 class ArrayAdapter
 {
@@ -16,11 +19,11 @@ class ArrayAdapter
     private $cache;
     
     /**
-     * Adapter delegates
+     * Event manager instance
      * 
-     * @var \Zend\Stdlib\PriorityQueue
+     * @var \Zend\EventManager\EventManager
      */
-    private $delegates;
+    private $eventManager;
     
     /**
      * Shared array adapter instance
@@ -84,11 +87,11 @@ class ArrayAdapter
     /**
      * Transfer object into array
      *
-     * @param array $properties
-     *            Properties to fetch from the object
+     * @param array $extract
+     *            Properties to extract from the object
      * @return array
      */
-    public function toArray($object, $properties = null, $options = null)
+    public function toArray($object, $extract = null, $options = null)
     {
         if (! is_object($object)) {
             throw new \InvalidArgumentException(
@@ -99,17 +102,29 @@ class ArrayAdapter
         $options     = is_array($options) ? $options : array();
         $definition  = $this->getClassDefinition(get_class($object));
         $getters     = $definition['getters'];
-        $specs       = new \ArrayObject();
-        $delegates   = $this->getDelegates()->toArray();
+        $specs       = new ArrayObject();
         
-        if (is_null($properties)) {
-            $properties = array_keys($getters);
+        if (is_null($extract)) {
+            $extract = array_fill_keys(array_keys($getters), true);
+        } elseif (is_string($extract)) {
+            $extract = array($extract => true);
         }
         
-        $properties = $this->normalizeToArrayProps($properties);
+        if (is_array($extract)) {
+            $extract = new ArrayObject($extract);
+        }
+        
+        $eventParams = new ArrayObject([
+            'object'  => $object,
+            'extract' => $extract,
+            'data'    => $specs,
+            'options' => $options
+        ]);
+        
+        $this->getEventManager()->trigger('pre.toArray', $this, $eventParams);
 
-        if (! empty($properties)) {
-            foreach ($properties as $key => $value) {
+        if (! empty($extract)) {
+            foreach ($extract as $key => $value) {
 
                 if (!$value || !isset($getters[$key])) {
                     continue;
@@ -117,29 +132,21 @@ class ArrayAdapter
                 
                 $method      = $getters[$key];
                 $specs[$key] = $object->{$method}();
+                
+                $eventParams['spec'] = $key; 
+                $this->getEventManager()->trigger('extract', $this, $eventParams);
             }
         }
         
-        foreach($delegates as $delegate){
-            $delegate->filterOut($this, $object, $specs, $properties, $options);
+        if (array_key_exists('spec', $eventParams)) {
+            unset($eventParams['spec']);
         }
         
+        $this->getEventManager()->trigger('post.toArray', $this, $eventParams);
+
         return $specs->getArrayCopy();
     }
     
-    /**
-     * Retrieve delegate queue
-     * 
-     * @return \Zend\Stdlib\PriorityQueue
-     */
-    public function getDelegates()
-    {
-        if ($this->delegates == null) {
-            $this->delegates = new PriorityQueue();
-        }
-        
-        return $this->delegates;
-    }
 
     /**
      * Retrieve class definition
@@ -204,6 +211,26 @@ class ArrayAdapter
     }
     
     /**
+     * @return \Zend\EventManager\EventManager
+     */
+    public function getEventManager()
+    {
+        if (!$this->eventManager) {
+            $this->setEventManager(new EventManager());
+        }
+        
+        return $this->eventManager;
+    }
+
+	/**
+     * @param \Zend\EventManager\EventManager $eventManager
+     */
+    public function setEventManager($eventManager)
+    {
+        $this->eventManager = $eventManager;
+    }
+
+	/**
      * Retrieve shared ArrayAdapter instance
      *
      * @return \Valu\Model\ArrayAdapter
@@ -283,24 +310,5 @@ class ArrayAdapter
         }
         
         return $definition;
-    }
-    
-    private function normalizeToArrayProps($properties)
-    {
-        if (!is_array($properties)) {
-            return array();
-        }
-        
-        $normal = array();
-        
-        foreach($properties as $key => $value){
-            if (is_numeric($key) && is_string($value)) {
-                $normal[$value] = true;
-            } else {
-                $normal[$key] = is_array($value) ? $value : (bool) $value;
-            }
-        }
-        
-        return $normal;
     }
 }

@@ -13,6 +13,21 @@ class ArrayAdapterFactory implements FactoryInterface
 {
 
     /**
+     * @var RecursionListener
+     */
+    private $recursionListener;
+
+    /**
+     * @var ModelListener
+     */
+    private $modelListener;
+    
+    /**
+     * @var DateFormatterListener
+     */
+    private $dateFormatterListener;
+    
+    /**
      * Shared cache instance
      * @var unknown_type
      */
@@ -22,9 +37,9 @@ class ArrayAdapterFactory implements FactoryInterface
     {
         $adapter = new ArrayAdapter();
         
-        $adapter->getDelegates()->insert(
-            new RecursionDelegate()        
-        );
+        $adapter->getEventManager()->attach('extract', $this->getRecursionListener(), 10000);
+        $adapter->getEventManager()->attach('extract', $this->getModelListener());
+        $adapter->getEventManager()->attach('extract', $this->getDateFormatterListener());
 
         $cache = $this->getCache($serviceLocator);
         
@@ -33,6 +48,33 @@ class ArrayAdapterFactory implements FactoryInterface
         }
         
         return $adapter;
+    }
+    
+    private function getRecursionListener()
+    {
+        if (!$this->recursionListener) {
+            $this->recursionListener = new RecursionListener();
+        }
+        
+        return $this->recursionListener;
+    }
+    
+    private function getModelListener()
+    {
+        if (!$this->modelListener) {
+            $this->modelListener = new ModelListener();
+        }
+    
+        return $this->modelListener;
+    }
+    
+    private function getDateFormatterListener()
+    {
+        if (!$this->dateFormatterListener) {
+            $this->dateFormatterListener = new DateFormatterListener();
+        }
+        
+        return $this->dateFormatterListener;
     }
     
     private function getCache(ServiceLocatorInterface $serviceLocator)

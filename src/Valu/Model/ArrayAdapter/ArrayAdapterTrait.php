@@ -11,7 +11,7 @@ trait ArrayAdapterTrait
      * 
      * @var \Valu\Model\ArrayAdapter;
      */
-    protected $arrayAdapter;
+    protected $_arrayAdapter;
     
     /**
      * Load model data from array
@@ -37,11 +37,11 @@ trait ArrayAdapterTrait
      * @return ArrayAdapter
      */
     public function getArrayAdapter(){
-        if(is_null($this->arrayAdapter)){
-            $this->arrayAdapter = self::getDefaultArrayAdapter();
+        if(is_null($this->_arrayAdapter)){
+            $this->_arrayAdapter = self::getDefaultArrayAdapter();
         }
     
-        return $this->arrayAdapter;
+        return $this->_arrayAdapter;
     }
     
     /**
