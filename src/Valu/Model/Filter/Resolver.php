@@ -11,9 +11,6 @@ use Zend\ServiceManager\AbstractPluginManager;
 /**
  * Filter that resolves model instances from abritary
  * data using injected resolver instance
- * 
- * @author juhasuni
- *
  */
 class Resolver 
     extends AbstractFilter
