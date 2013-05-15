@@ -7,6 +7,30 @@ use ValuTest\Model\TestAsset\MockModel;
 class ArrayAdapterTest extends \PHPUnit_Framework_TestCase
 {
 
+    /**
+     *
+     * @var ArrayAdapter
+     */
+    private $arrayAdapter;
+    
+    /**
+     * Prepares the environment before running a test.
+     */
+    protected function setUp()
+    {
+        parent::setUp();
+        $this->arrayAdapter = new ArrayAdapter();
+    }
+    
+    /**
+     * Cleans up the environment after running a test.
+     */
+    protected function tearDown()
+    {
+        $this->arrayAdapter = null;
+        parent::tearDown();
+    }
+    
     public function testFromArray()
     {
         $data = array(
@@ -32,8 +56,7 @@ class ArrayAdapterTest extends \PHPUnit_Framework_TestCase
     
     public function testFromArrayWithChildProperty()
     {
-        $adapter = new ArrayAdapter();
-        MockModel::$arrayAdapter = $adapter;
+        MockModel::$arrayAdapter = $this->arrayAdapter;
         
         $data = array(
             'id'   => 'Child ID',
@@ -45,7 +68,7 @@ class ArrayAdapterTest extends \PHPUnit_Framework_TestCase
         $child = $this->newMock($data);
         $model = $this->newMock(array('child' => $child));
         
-        $adapter->fromArray($model, array('child' => array('name' => $newName)) );
+        $this->arrayAdapter->fromArray($model, array('child' => array('name' => $newName)) );
         
         $data['name'] = $newName;
 
@@ -67,12 +90,11 @@ class ArrayAdapterTest extends \PHPUnit_Framework_TestCase
             'child'  => null
         );
     
-        $adapter = new ArrayAdapter();
         $model = $this->newMock($data);
     
         $this->assertEquals(
                 $data,
-                $adapter->toArray($model)
+                $this->arrayAdapter->toArray($model)
         );
     }
     
@@ -87,11 +109,9 @@ class ArrayAdapterTest extends \PHPUnit_Framework_TestCase
 
         $model = $this->newMock($data);
         
-        $adapter = new ArrayAdapter();
-
         $this->assertEquals(
             array('meta' => array('data' => 'metadata')),
-            $adapter->toArray($model, array('meta' => array('data' => true)))
+            $this->arrayAdapter->toArray($model, array('meta' => array('data' => true)))
         );
     }
     
@@ -106,12 +126,71 @@ class ArrayAdapterTest extends \PHPUnit_Framework_TestCase
         
         $model = $this->newMock($data);
         
-        $adapter = new ArrayAdapter();
-        
         $this->assertEquals(
             array('meta' => $data['meta']),
-            $adapter->toArray($model, array('meta' => true))
+            $this->arrayAdapter->toArray($model, array('meta' => true))
         );
+    }
+    
+    public function testToArrayTriggersPreEvent()
+    {
+        $data = array(
+            'name' => 'Mock model'
+        );
+        
+        $event = null;
+        
+        $model = $this->newMock($data);
+        $this->arrayAdapter->getEventManager()->attach('pre.toArray', function($e) use(&$event) {
+            $event = $e;
+        });
+        
+        $this->arrayAdapter->toArray($model, ['name' => true]);
+        
+        $this->assertNotNull($event);
+        $this->assertSame($model, $event->getParam('object'));
+        $this->assertEquals(['name' => true], $event->getParam('extract'));
+    }
+    
+    public function testToArrayTriggersExtractEvent()
+    {
+        $data = array(
+            'name' => 'Mock model',
+        );
+    
+        $eventParams = null;
+    
+        $model = $this->newMock($data);
+        $this->arrayAdapter->setExtractScalarsSilently(false);
+        $this->arrayAdapter->getEventManager()->attach('extract', function($e) use(&$eventParams) {
+            $eventParams = $e->getParams()->getArrayCopy();
+        });
+    
+        $this->arrayAdapter->toArray($model, ['name' => true]);
+
+        $this->assertNotNull($eventParams);
+        $this->assertEquals('name', $eventParams['spec']);
+    }
+    
+    public function testToArrayTriggersPostEvent()
+    {
+        $data = array(
+            'name' => 'Mock model'
+        );
+        
+        $event = null;
+        
+        $model = $this->newMock($data);
+        $this->arrayAdapter->getEventManager()->attach('post.toArray', function($e) use(&$event) {
+            $event = $e;
+        });
+        
+        $this->arrayAdapter->toArray($model, ['name' => true]);
+        
+        $this->assertNotNull($event);
+        $this->assertSame($model, $event->getParam('object'));
+        $this->assertEquals(['name' => true], $event->getParam('extract'));
+        $this->assertEquals($data, $event->getParam('data')->getArrayCopy());
     }
     
     private function newMock(array $data)
