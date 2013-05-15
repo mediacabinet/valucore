@@ -1,32 +1,12 @@
 <?php
 namespace ValuTest\Model;
 
-use Valu\Model\ArrayAdapter\ObjectRecursionDelegate;
-use Valu\Model\ArrayAdapter\RecursionDelegate;
 use Valu\Model\ArrayAdapter;
 use ValuTest\Model\TestAsset\MockModel;
 
 class ArrayAdapterTest extends \PHPUnit_Framework_TestCase
 {
 
-    public function testToArray()
-    {
-        $data = array(
-            'id'     => 'mock123',
-            'name'   => 'Test Mock',
-            'meta'   => array('data'=>'metadata'),
-            'child'  => null 
-        );
-        
-        $adapter = new ArrayAdapter();
-        $model = $this->newMock($data);
-        
-        $this->assertEquals(
-            $data,
-            $adapter->toArray($model)   
-        );
-    }
-    
     public function testFromArray()
     {
         $data = array(
@@ -78,47 +58,59 @@ class ArrayAdapterTest extends \PHPUnit_Framework_TestCase
         );
     }
     
-    public function testToArrayWithRecursionDelegate()
+    public function testToArray()
     {
         $data = array(
-            'meta' => array('data'=>'metadata', 'keywords'=>'kw'),
+            'id'     => 'mock123',
+            'name'   => 'Test Mock',
+            'meta'   => array('data'=>'metadata'),
+            'child'  => null
+        );
+    
+        $adapter = new ArrayAdapter();
+        $model = $this->newMock($data);
+    
+        $this->assertEquals(
+                $data,
+                $adapter->toArray($model)
+        );
+    }
+    
+    public function testToArrayWithRecursion()
+    {
+        $data = array(
+            'meta' => array(
+                'data'=>'metadata', 
+                'keywords'=>'kw'
+            ),
         );
 
         $model = $this->newMock($data);
         
         $adapter = new ArrayAdapter();
-        $adapter->getDelegates()->insert(
-            new RecursionDelegate()        
-        );
-        
+
         $this->assertEquals(
             array('meta' => array('data' => 'metadata')),
             $adapter->toArray($model, array('meta' => array('data' => true)))
         );
     }
     
-    public function testToArrayWithObjectRecursionDelegate()
+    public function testToArrayWithFullRecursion()
     {
-        $childData = array(
-            'name' => 'Child mock'        
-        );
-        
         $data = array(
-            'child' => $this->newMock($childData)
+            'meta' => array(
+                'data'=>'metadata',
+                'keywords'=>'kw'
+            ),
         );
         
         $model = $this->newMock($data);
         
         $adapter = new ArrayAdapter();
-        $adapter->getDelegates()->insert(
-            new ObjectRecursionDelegate()
-        );
-        
-        MockModel::$arrayAdapter = $adapter;
         
         $this->assertEquals(
-            array('child' => $childData),
-            $adapter->toArray($model,  array('child' => array('name' => true)))
+            array('meta' => $data['meta']),
+            $adapter->toArray($model, array('meta' => true))
         );
     }
     
