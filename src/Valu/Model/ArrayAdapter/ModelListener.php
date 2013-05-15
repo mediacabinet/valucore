@@ -5,6 +5,15 @@ use ArrayObject;
 use Valu\Model\ArrayAdapter;
 use Zend\EventManager\EventInterface;
 
+/**
+ * Model listener
+ * 
+ * This class is a listener that tries to recognize objects that
+ * are model classes and convert them to array using the best
+ * available method, which is either getting the model's ID or
+ * using its internal toArray implementation or toArray provided
+ * by model's getArrayAdapter method.
+ */
 class ModelListener
 {
     public function __invoke(EventInterface $event)
