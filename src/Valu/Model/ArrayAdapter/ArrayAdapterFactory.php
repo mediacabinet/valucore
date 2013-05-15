@@ -11,12 +11,6 @@ use Zend\ServiceManager\ServiceLocatorInterface;
 
 class ArrayAdapterFactory implements FactoryInterface
 {
-
-    /**
-     * @var RecursionListener
-     */
-    private $recursionListener;
-
     /**
      * @var ModelListener
      */
@@ -37,7 +31,6 @@ class ArrayAdapterFactory implements FactoryInterface
     {
         $adapter = new ArrayAdapter();
         
-        $adapter->getEventManager()->attach('extract', $this->getRecursionListener(), 10000);
         $adapter->getEventManager()->attach('extract', $this->getModelListener());
         $adapter->getEventManager()->attach('extract', $this->getDateFormatterListener());
 
@@ -49,16 +42,7 @@ class ArrayAdapterFactory implements FactoryInterface
         
         return $adapter;
     }
-    
-    private function getRecursionListener()
-    {
-        if (!$this->recursionListener) {
-            $this->recursionListener = new RecursionListener();
-        }
-        
-        return $this->recursionListener;
-    }
-    
+
     private function getModelListener()
     {
         if (!$this->modelListener) {

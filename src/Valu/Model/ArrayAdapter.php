@@ -1,9 +1,11 @@
 <?php
 namespace Valu\Model;
 
+use Zend\EventManager\EventInterface;
+
 use ArrayObject;
 use Valu\Model\ArrayAdapter\ProviderInterface;
-use Valu\Model\ArrayAdapter\Event;
+use Zend\EventManager\Event;
 use Zend\Stdlib\PriorityQueue;
 use Zend\Cache\Storage\StorageInterface;
 use Zend\EventManager\EventManager;
@@ -24,6 +26,14 @@ class ArrayAdapter
      * @var \Zend\EventManager\EventManager
      */
     private $eventManager;
+    
+    /**
+     * Whether or not scalar values should be extracted
+     * silently
+     * 
+     * @var boolean
+     */
+    private $extractScalarsSilently = true;
     
     /**
      * Shared array adapter instance
@@ -102,39 +112,38 @@ class ArrayAdapter
         $options     = is_array($options) ? $options : array();
         $definition  = $this->getClassDefinition(get_class($object));
         $getters     = $definition['getters'];
-        $specs       = new ArrayObject();
+        $data        = new ArrayObject();
         
         if (is_null($extract)) {
             $extract = array_fill_keys(array_keys($getters), true);
         } elseif (is_string($extract)) {
             $extract = array($extract => true);
         }
-        
-        if (is_array($extract)) {
-            $extract = new ArrayObject($extract);
-        }
-        
+
         $eventParams = new ArrayObject([
             'object'  => $object,
             'extract' => $extract,
-            'data'    => $specs,
+            'data'    => null,
             'options' => $options
         ]);
         
         $this->getEventManager()->trigger('pre.toArray', $this, $eventParams);
-
-        if (! empty($extract)) {
-            foreach ($extract as $key => $value) {
+        
+        if (!empty($eventParams['extract'])) {
+            
+            foreach ($eventParams['extract'] as $key => $value) {
 
                 if (!$value || !isset($getters[$key])) {
                     continue;
                 }
                 
-                $method      = $getters[$key];
-                $specs[$key] = $object->{$method}();
-                
-                $eventParams['spec'] = $key; 
-                $this->getEventManager()->trigger('extract', $this, $eventParams);
+                $method     = $getters[$key];
+                $data[$key] = $object->{$method}();
+            }
+            
+            if (sizeof($data)) {
+                $eventPrototype = new Event('extract', $this, $eventParams);
+                $this->traverseAndExtract($eventPrototype, $data, $eventParams['extract']);
             }
         }
         
@@ -142,9 +151,11 @@ class ArrayAdapter
             unset($eventParams['spec']);
         }
         
+        $eventParams['data'] = $data;
+        
         $this->getEventManager()->trigger('post.toArray', $this, $eventParams);
 
-        return $specs->getArrayCopy();
+        return $data->getArrayCopy();
     }
     
 
@@ -223,6 +234,27 @@ class ArrayAdapter
     }
 
 	/**
+	 * Should scalars be extracted silently (no event
+	 * is triggered)?
+	 * 
+     * @return boolean
+     */
+    public function getExtractScalarsSilently()
+    {
+        return $this->extractScalarsSilently;
+    }
+
+	/**
+	 * Enable/disable silent extraction for scalar values
+	 * 
+     * @param boolean $extractScalarsSilently
+     */
+    public function setExtractScalarsSilently($extractScalarsSilently = true)
+    {
+        $this->extractScalarsSilently = $extractScalarsSilently;
+    }
+
+	/**
      * @param \Zend\EventManager\EventManager $eventManager
      */
     public function setEventManager($eventManager)
@@ -253,6 +285,66 @@ class ArrayAdapter
     public static function setSharedInstance(ArrayAdapter $arrayAdapter)
     {
         self::$sharedInstance = $arrayAdapter;
+    }
+    
+    /**
+     * Traverse and extract data recursively
+     * 
+     * @param EventInterface $event Event prototype
+     * @param \ArrayAccess $data
+     * @param array|boolean $extract
+     */
+    private function traverseAndExtract(EventInterface $event, \ArrayAccess $data, $extract)
+    {
+        // Fetch keys
+        $keys = array();
+        foreach ($data as $key => &$value) {
+            $keys[] = $key;
+        }
+        
+        $event->setParam('data', $data);
+        
+        // Iterate keys
+        foreach ($keys as $key) {
+
+            if (is_numeric($key)) {
+                $extractNext = $extract;
+            } elseif($extract === true) {
+                $extractNext = $extract;
+            } elseif (is_array($extract) && array_key_exists($key, $extract)) {
+                $extractNext = $extract[$key];
+            } else {
+                $extractNext = false;
+            }
+            
+            if (!is_array($extractNext) && $extractNext != true) {
+                unset($data[$key]);
+                continue;
+            }
+            
+            if (is_array($data[$key])) {
+                $data[$key] = new ArrayObject($data[$key]);
+            }
+            
+            if ($data[$key] instanceof \ArrayAccess) {
+                $this->traverseAndExtract($event, $data[$key], $extractNext);
+            }
+            
+            if (!array_key_exists($key, $data)) {
+                continue;
+            }
+            
+            if (!is_scalar($data[$key]) || !$this->getExtractScalarsSilently()) {
+                $event->setParam('spec', $key);
+                $event->setParam('extract', $extractNext);
+                
+                $this->getEventManager()->trigger($event);
+            }
+            
+            if (isset($data[$key]) && $data[$key] instanceof ArrayObject) {
+                $data[$key] = $data[$key]->getArrayCopy();
+            }
+        }
     }
 
     /**
