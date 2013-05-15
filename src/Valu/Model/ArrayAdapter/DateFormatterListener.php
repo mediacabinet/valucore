@@ -24,7 +24,6 @@ class DateFormatterListener
             return;
         }
         
-        $extract = $event->getParam('extract', []);
         $options = $event->getParam('options');
         
         if (isset($options['date_formatter']) && isset($options['date_formatter']['format'])) {
