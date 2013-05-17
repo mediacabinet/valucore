@@ -81,7 +81,7 @@ class ArrayAdapterTest extends \PHPUnit_Framework_TestCase
         );
     }
     
-    public function testToArray()
+    public function testToArrayWithoutExtractionParam()
     {
         $data = array(
             'id'     => 'mock123',
@@ -95,6 +95,38 @@ class ArrayAdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(
                 $data,
                 $this->arrayAdapter->toArray($model)
+        );
+    }
+    
+    public function testToArrayUsingArrayAsExtractionParam()
+    {
+        $data = array(
+            'id'     => 'mock123',
+            'name'   => 'Test Mock',
+            'meta'   => array('data'=>'metadata'),
+            'child'  => null
+        );
+    
+        $model = $this->newMock($data);
+    
+        $this->assertEquals(
+            ['id' => $data['id'], 'name' => $data['name']],
+            $this->arrayAdapter->toArray($model, ['id' => true, 'name' => true])
+        );
+    }
+    
+    public function testToArrayUsingStringAsExtractionParam()
+    {
+        $data = array(
+            'id'     => 'mock123',
+            'name'   => 'Test Mock',
+        );
+    
+        $model = $this->newMock($data);
+    
+        $this->assertEquals(
+            ['name' => $data['name']],
+            $this->arrayAdapter->toArray($model, 'name')
         );
     }
     
