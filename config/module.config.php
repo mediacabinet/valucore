@@ -6,7 +6,6 @@ return [
             'valu.inputfilter.repository' => 'Valu\InputFilter\ServiceManager\InputFilterRepositoryFactory',
         ],
         'aliases' => [
-            'Cache' => 'ValuCache',
             'ArrayAdapter' => 'ValuModelArrayAdapter',
         ],
         'shared' => [
