@@ -302,11 +302,9 @@ class ArrayAdapter
             $keys[] = $key;
         }
         
-        $event->setParam('data', $data);
-        
         // Iterate keys
         foreach ($keys as $key) {
-
+            
             if (is_numeric($key)) {
                 $extractNext = $extract;
             } elseif($extract === true) {
@@ -337,6 +335,7 @@ class ArrayAdapter
             if (!is_scalar($data[$key]) || !$this->getExtractScalarsSilently()) {
                 $event->setParam('spec', $key);
                 $event->setParam('extract', $extractNext);
+                $event->setParam('data', $data);
                 
                 $this->getEventManager()->trigger($event);
             }
