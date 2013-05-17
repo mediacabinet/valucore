@@ -13,6 +13,8 @@ use Zend\EventManager\EventManager;
 class ArrayAdapter
 {
 
+    const CACHE_PREFIX = 'valu_array_adapter_';
+    
     /**
      * Cache
      * 
@@ -178,7 +180,7 @@ class ArrayAdapter
         $className = $class instanceof \ReflectionClass ? $class->getName() : (string) $class;
         
         // Make class name valid for cache adapters
-        $cacheId = str_replace('\\', '_', $className);
+        $cacheId = self::CACHE_PREFIX . str_replace('\\', '_', $className);
         
         /**
          * Fetch from cache or parse
