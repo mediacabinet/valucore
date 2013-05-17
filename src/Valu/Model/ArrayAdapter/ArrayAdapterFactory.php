@@ -79,8 +79,8 @@ class ArrayAdapterFactory implements FactoryInterface
                     unset($adapterConfig['cache']['enabled']);
             
                     $cache = StorageFactory::factory($adapterConfig['cache']);
-                } else {
-                    $cache = $serviceLocator->get('Cache');
+                } elseif($serviceLocator->has('ObjectCache')) {
+                    $cache = $serviceLocator->get('ObjectCache');
                 }
             }
             
