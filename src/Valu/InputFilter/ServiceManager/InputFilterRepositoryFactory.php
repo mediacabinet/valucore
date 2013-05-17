@@ -26,10 +26,8 @@ class InputFilterRepositoryFactory
             
             $cache = StorageFactory::factory($cacheConfig);
         } else {
-            try {
-                $cache = $serviceLocator->get('Cache');
-            } catch(ServiceNotFoundException $e) {
-                 $cache = null;   
+            if ($serviceLocator->has('ObjectCache')) {
+                $cache = $serviceLocator->get('ObjectCache');
             }
         }
         
