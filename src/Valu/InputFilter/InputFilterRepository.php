@@ -185,6 +185,6 @@ class InputFilterRepository
 	 */
 	protected function getCacheId($name)
 	{
-	    return md5(self::CACHE_NS . $name);
+	    return self::CACHE_PREFIX . md5($name);
 	}
 }

@@ -13,7 +13,7 @@ use Zend\Stdlib\ArrayUtils;
 class DefinitionBased implements InvokerInterface
 {
 
-    const CACHE_NS = 'valu_service_definition_';
+    const CACHE_PREFIX = 'valu_service_definition_';
     
     /**
      * Cache adapter
@@ -113,7 +113,7 @@ class DefinitionBased implements InvokerInterface
     private function defineService(DefinitionProviderInterface $service)
     {
         $class = get_class($service);
-        $cacheId = self::CACHE_NS . str_replace('\\', '_', $class);
+        $cacheId = self::CACHE_PREFIX . str_replace('\\', '_', $class);
         $version = $class::version();
         $definition = null;
         
