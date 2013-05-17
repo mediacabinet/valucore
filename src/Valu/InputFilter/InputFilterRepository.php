@@ -12,7 +12,7 @@ class InputFilterRepository
      * 
      * @var string
      */
-    const CACHE_NS = 'valu_input_filter_';
+    const CACHE_PREFIX = 'valu_input_filter_';
     
     /**
      * Input filter configurator

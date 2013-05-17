@@ -24,7 +24,7 @@ class Configurator implements ConfiguratorInterface
      *
      * @var string
      */
-    const CACHE_NS = 'valu_input_filter_configurator_';
+    const CACHE_PREFIX = 'valu_input_filter_configurator_';
 
     /**
      * Input filter instances
@@ -483,7 +483,7 @@ class Configurator implements ConfiguratorInterface
     {
         if ($this->getCache() && $this->references && $this->dirtyReferences) {
             $this->getCache()->set(
-                self::CACHE_NS . '_related', 
+                self::CACHE_PREFIX . '_related', 
                 $this->references
             );
         }
@@ -496,6 +496,6 @@ class Configurator implements ConfiguratorInterface
      */
     protected function getCacheId($name)
     {
-        return md5(self::CACHE_NS . $name);
+        return self::CACHE_PREFIX . md5($name);
     }
 }
