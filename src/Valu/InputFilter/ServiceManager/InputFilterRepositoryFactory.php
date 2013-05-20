@@ -19,16 +19,15 @@ class InputFilterRepositoryFactory
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
         $config = $serviceLocator->get('Configuration');
-       
+        $cache = null;
+        
         // Initialize cache
         if (isset($config['input_filter']['cache'])) {
             $cacheConfig = $config['input_filter']['cache'];
             
             $cache = StorageFactory::factory($cacheConfig);
-        } else {
-            if ($serviceLocator->has('ObjectCache')) {
-                $cache = $serviceLocator->get('ObjectCache');
-            }
+        } elseif ($serviceLocator->has('ObjectCache')) {
+            $cache = $serviceLocator->get('ObjectCache');
         }
         
         $repository = new InputFilterRepository();
