@@ -420,20 +420,16 @@ class DefaultDelegate implements DelegateInterface
                 $field->in($list);
                 break;
             case SimpleSelector\Attribute::OPERATOR_REG_EXP:
-                $re = new \MongoRegex('/'.$cond.'/');
-                $field->equals($re);
+                $field->operator('$regex', $cond);
                 break;
             case SimpleSelector\Attribute::OPERATOR_SUBSTR_MATCH:
-                $re = new \MongoRegex('/.*'.preg_quote($cond, '/').'.*/');
-                $field->equals($re);
+                $field->operator('$regex', '.*'.preg_quote($cond, '/').'.*');
                 break;
             case SimpleSelector\Attribute::OPERATOR_SUBSTR_PREFIX:
-                $re = new \MongoRegex('/^'.preg_quote($cond, '/').'.*/');
-                $field->equals($re);
+                $field->operator('$regex', '^'.preg_quote($cond, '/').'.*');
                 break;
             case SimpleSelector\Attribute::OPERATOR_SUBSTR_SUFFIX:
-                $re = new \MongoRegex('/'.preg_quote($cond, '/').'$/');
-                $field->equals($re);
+                $field->operator('$regex', ''.preg_quote($cond, '/').'$');
                 break;
             default:
                 throw new Exception\UnknownOperatorException(
