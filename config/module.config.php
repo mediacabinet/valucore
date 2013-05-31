@@ -20,4 +20,13 @@ return [
             ]
         ]
     ],
+    'array_adapter' => [
+        'model_listener' => [
+            'namespaces' => [
+            ]
+        ],
+        'date_formatter' => [
+            'format' => DATE_ISO8601
+        ]
+    ]
 ];

@@ -31,8 +31,8 @@ class ArrayAdapterFactory implements FactoryInterface
     {
         $adapter = new ArrayAdapter();
         
-        $adapter->getEventManager()->attach('extract', $this->getModelListener());
-        $adapter->getEventManager()->attach('extract', $this->getDateFormatterListener());
+        $adapter->getEventManager()->attach('extract', $this->getModelListener($serviceLocator));
+        $adapter->getEventManager()->attach('extract', $this->getDateFormatterListener($serviceLocator));
 
         $cache = $this->getCache($serviceLocator);
         
@@ -43,24 +43,44 @@ class ArrayAdapterFactory implements FactoryInterface
         return $adapter;
     }
 
-    private function getModelListener()
+    /**
+     * Fetch initialized ModelListener
+     * 
+     * @param ServiceLocatorInterface $serviceLocator
+     * @return \Valu\Model\ArrayAdapter\ModelListener
+     */
+    private function getModelListener(ServiceLocatorInterface $serviceLocator)
     {
         if (!$this->modelListener) {
-            $this->modelListener = new ModelListener();
+            $this->modelListener = new ModelListener(
+                $this->getOptions($serviceLocator, 'model_listener'));
         }
     
         return $this->modelListener;
     }
     
-    private function getDateFormatterListener()
+    /**
+     * Fetch initialized DateFormatterListener
+     * 
+     * @param ServiceLocatorInterface $serviceLocator
+     * @return \Valu\Model\ArrayAdapter\DateFormatterListener
+     */
+    private function getDateFormatterListener(ServiceLocatorInterface $serviceLocator)
     {
         if (!$this->dateFormatterListener) {
-            $this->dateFormatterListener = new DateFormatterListener();
+            $this->dateFormatterListener = new DateFormatterListener(
+                $this->getOptions($serviceLocator, 'date_formatter'));
         }
         
         return $this->dateFormatterListener;
     }
     
+    /**
+     * Fetch cache instance
+     * 
+     * @param ServiceLocatorInterface $serviceLocator
+     * @return \Zend\Cache\Storage\StorageInterface
+     */
     private function getCache(ServiceLocatorInterface $serviceLocator)
     {
         if (!self::$cache) {
@@ -85,5 +105,23 @@ class ArrayAdapterFactory implements FactoryInterface
         }
         
         return self::$cache;
+    }
+    
+    /**
+     * Retrieve options for listener
+     * 
+     * @param ServiceLocatorInterface $serviceLocator
+     * @param string $key
+     * @return array
+     */
+    private function getOptions(ServiceLocatorInterface $serviceLocator, $key)
+    {
+        $config = $serviceLocator->get('Config');
+        
+        if (isset($config['array_adapter'][$key])) {
+            return $config['array_adapter'][$key];
+        } else {
+            return array();
+        }
     }
 }

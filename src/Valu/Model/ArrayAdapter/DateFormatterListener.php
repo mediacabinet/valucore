@@ -9,6 +9,13 @@ class DateFormatterListener
 {
     protected $defaultFormat = DATE_ISO8601;
     
+    public function __construct($options)
+    {
+        if (isset($options['format'])) {
+            $this->setDateFormat($options['format']);
+        }
+    }
+    
     public function __invoke(EventInterface $event)
     {
         $data    = $event->getParam('data');
@@ -33,5 +40,25 @@ class DateFormatterListener
         }
         
         $data[$spec] = $value->format($format);
+    }
+    
+    /**
+     * Set default date format
+     * 
+     * @param string $format
+     */
+    public function setDateFormat($format)
+    {
+        $this->defaultFormat = $format;
+    }
+    
+    /**
+     * Retrieve default date format
+     * 
+     * @return string
+     */
+    public function getDateFormat()
+    {
+        return $this->defaultFormat;
     }
 }

@@ -16,6 +16,20 @@ use Zend\EventManager\EventInterface;
  */
 class ModelListener
 {
+    /**
+     * Array of allowed namespaces
+     * 
+     * @var array
+     */
+    private $namespaces;
+    
+    public function __construct($options)
+    {
+        if (isset($options['namespaces'])) {
+            $this->setNamespaces($options['namespaces']);
+        }
+    }
+    
     public function __invoke(EventInterface $event)
     {
         $data    = $event->getParam('data');
@@ -27,7 +41,7 @@ class ModelListener
         
         $value = $data[$spec];
         
-        if (!is_object($value)) {
+        if (!is_object($value) || !$this->classIsInAllowedNamespace(get_class($value))) {
             return;
         }
         
@@ -45,6 +59,46 @@ class ModelListener
             }
         } elseif(method_exists($value, 'getArrayAdapter')) {
             $data[$spec] = $value->getArrayAdapter()->toArray($value, $extract, $options);
+        } else {
+            $data[$spec] = $event->getTarget()->toArray($value, $extract, $options);
         }
+    }
+    
+    /**
+     * Set allowed namespaces
+     * 
+     * @param array $namespaces
+     */
+    public function setNamespaces(array $namespaces)
+    {
+        $this->namespaces = $namespaces;
+    }
+    
+    /**
+     * Get allowed namespaces
+     * 
+     * @return array
+     */
+    public function getNamespaces()
+    {
+        return $this->namespaces;
+    }
+    
+    /**
+     * Test whether or not class is in one of the allowed
+     * namespaces
+     * 
+     * @param string $class
+     * @return boolean
+     */
+    public function classIsInAllowedNamespace($class)
+    {
+        foreach ($this->namespaces as $ns) {
+            if (strpos($class, $ns) === 0) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 }
