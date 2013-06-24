@@ -23,6 +23,9 @@ return [
     'array_adapter' => [
         'model_listener' => [
             'namespaces' => [
+            ],
+            'proxy_namespaces' => [
+                'DoctrineMongoODMModule\Proxy\__CG__'
             ]
         ],
         'date_formatter' => [
