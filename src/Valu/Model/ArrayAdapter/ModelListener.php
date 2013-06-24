@@ -23,10 +23,21 @@ class ModelListener
      */
     private $namespaces;
     
+    /**
+     * Array of proxy namespaces
+     * 
+     * @var array
+     */
+    private $proxyNamespaces;
+    
     public function __construct($options)
     {
         if (isset($options['namespaces'])) {
             $this->setNamespaces($options['namespaces']);
+        }
+        
+        if (isset($options['proxy_namespaces'])) {
+            $this->setProxyNamespaces($options['proxy_namespaces']);
         }
     }
     
@@ -40,7 +51,7 @@ class ModelListener
         }
         
         $value = $data[$spec];
-        
+
         if (!is_object($value) || !$this->classIsInAllowedNamespace(get_class($value))) {
             return;
         }
@@ -85,6 +96,26 @@ class ModelListener
     }
     
     /**
+     * Retrieve proxy namespaces
+     * 
+     * @return array
+     */
+    public function getProxyNamespaces()
+    {
+        return $this->proxyNamespaces;
+    }
+
+	/**
+	 * Set proxy namespaces
+	 * 
+     * @param array $proxyNamespaces
+     */
+    public function setProxyNamespaces(array $proxyNamespaces)
+    {
+        $this->proxyNamespaces = $proxyNamespaces;
+    }
+
+	/**
      * Test whether or not class is in one of the allowed
      * namespaces
      * 
@@ -94,11 +125,30 @@ class ModelListener
     public function classIsInAllowedNamespace($class)
     {
         foreach ($this->namespaces as $ns) {
-            if (strpos($class, $ns) === 0) {
+            $canonicalClass = $this->canonicalizeClass($class);
+            if (strpos($canonicalClass, $ns) === 0) {
                 return true;
             }
         }
         
         return false;
+    }
+    
+    /**
+     * Parse canonical class name by removing any proxy
+     * class prefix
+     * 
+     * @param string $class
+     * @return string|unknown
+     */
+    private function canonicalizeClass($class)
+    {
+        foreach ($this->proxyNamespaces as $proxyNs) {
+            if (strpos($class, $proxyNs) === 0) {
+                return ltrim(substr($class, strlen($proxyNs)), "\\");
+            }
+        }
+        
+        return $class;
     }
 }
