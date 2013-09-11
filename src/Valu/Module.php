@@ -1,5 +1,5 @@
 <?php
-namespace ValuCore;
+namespace valucore;
 
 use Zend\ModuleManager\Feature;
 use Zend\Loader\AutoloaderFactory;
