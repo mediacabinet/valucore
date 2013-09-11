@@ -1,21 +1,24 @@
 {
-    "name": "valu/valucore",
-    "description": "Valu Core library",
-    "version": "0.1.1",
-    "type": "library",
-    "keywords": [
-        "valu"
-    ],
-    "homepage": "http://www.mediacabinet.fi/",
-    "license": "BSD-3-Clause",
-    "require": {
-        "php": ">=5.4.0",
-        "zendframework/zendframework": ">=2.0"
-    },
-    "autoload": {
-        "psr-0": {
-            "Valu\\": "src/",
-            "ValuTest\\": "tests/"
-        }
-    }
+	"name" : "valu/valucore",
+	"description" : "Valu Core library",
+	"version" : "0.1.1",
+	"type" : "library",
+	"keywords" : [
+		"valu"
+	],
+	"homepage" : "http://www.mediacabinet.fi/",
+	"license" : [
+		"BSD-3-Clause"
+	],
+	"require" : {
+		"php" : ">=5.4.0",
+		"zendframework/zendframework" : ">=2.0"
+	},
+	"autoload" : {
+		"psr-0" : {
+			"ValuTest\\" : "tests/",
+			"Valu\\" : "src/",
+			"ValuCore\\" : "src/"
+		}
+	}
 }
