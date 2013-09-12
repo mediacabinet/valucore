@@ -1,7 +1,7 @@
 {
 	"name" : "valu/valucore",
 	"description" : "Valu Core library",
-	"version" : "0.1.1",
+	"version" : "1.0.0",
 	"type" : "library",
 	"keywords" : [
 		"valu"
@@ -18,11 +18,7 @@
 		"psr-0" : {
 			"ValuTest\\" : "tests/",
 			"Valu\\" : "src/",
-<<<<<<< HEAD
 			"ValuCore\\" : "src/"
-=======
-			"ValuCore\\Model" : "src/Model"
->>>>>>> 0cb77c122c7b77519a8220e9e8c8c86c268708d2
 		}
 	}
 }
