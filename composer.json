@@ -17,8 +17,10 @@
 	"autoload" : {
 		"psr-0" : {
 			"ValuTest\\" : "tests/",
-			"Valu\\" : "src/",
-			"ValuCore\\" : "src/"
+			"Valu\\" : "src/"
 		}
+	},
+	"classmap" :  {
+		["src/Valu/Module.php"]
 	}
 }
