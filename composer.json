@@ -18,9 +18,9 @@
 		"psr-0" : {
 			"ValuTest\\" : "tests/",
 			"Valu\\" : "src/"
-		}
-	},
-	"classmap" :  [
-		"src/Valu/Module.php"
-	]
+		},
+		"classmap" :  [
+                	"src/Valu/Module.php"
+        	]
+	}
 }
