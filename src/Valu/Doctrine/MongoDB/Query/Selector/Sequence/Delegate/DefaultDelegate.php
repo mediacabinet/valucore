@@ -1,7 +1,7 @@
 <?php
 namespace Valu\Doctrine\MongoDB\Query\Selector\Sequence\Delegate;
 
-use Doctrine\ODM\MongoDB\Mapping\Types\Type;
+use Doctrine\ODM\MongoDB\Types\Type;
 use Valu\Doctrine\MongoDB\Query\Selector\Sequence\DelegateInterface;
 use Valu\Selector\SimpleSelector\AbstractSelector;
 use Valu\Doctrine\MongoDB\Query\Selector\Sequence;

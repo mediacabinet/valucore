@@ -491,7 +491,7 @@ class Helper
         // Prepare query
         $query = $this->getUow()
             ->getDocumentPersister($this->repository->getDocumentName())
-            ->prepareQuery($query);
+            ->prepareQueryOrNewObj($query);
         
         // Retrieve cursor by performing find
         $cursor = $coll->find($query);
