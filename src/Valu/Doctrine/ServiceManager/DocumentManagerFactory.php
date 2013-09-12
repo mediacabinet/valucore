@@ -4,8 +4,6 @@ namespace Valu\Doctrine\ServiceManager;
 use Doctrine\Common\Cache\PhpFileCache;
 use Doctrine\Common\Cache\ApcCache;
 use Doctrine\Common\Cache\ZendDataCache;
-use Valu\Service\Broker;
-use Valu\Service\Loader;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Doctrine\MongoDB\Connection;

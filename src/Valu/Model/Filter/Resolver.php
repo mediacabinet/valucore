@@ -2,7 +2,6 @@
 namespace Valu\Model\Filter;
 
 use Valu\Model\ResolverInterface;
-use Doctrine\ODM\MongoDB\DocumentManager;
 use Zend\Filter\AbstractFilter;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
