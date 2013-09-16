@@ -197,7 +197,7 @@ class Resolver
     }
     
     /**
-     * @return \Valu\Model\Filter\ServiceManager
+     * @return ServiceLocatorInterface
      */
     public function getServiceLocator()
     {
