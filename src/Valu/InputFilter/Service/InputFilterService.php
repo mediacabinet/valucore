@@ -4,6 +4,7 @@ namespace Valu\InputFilter\Service;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Valu\InputFilter\InputFilterRepository;
+use Valu\InputFilter\InputFilter;
 use ValuSo\Annotation as ValuService;
 
 class InputFilterService
@@ -44,11 +45,10 @@ class InputFilterService
         $inputFilter = $this->repository->get($name);
         
         if ($inputFilter && 
-            $inputFilter instanceof ServiceLocatorAwareInterface && 
-            !$inputFilter->getServiceLocator() &&
+            $inputFilter instanceof InputFilter && 
             $this->getServiceLocator()) {
             
-            $inputFilter->setServiceLocator($this->getServiceLocator());
+            $inputFilter->setMainServiceLocator($this->getServiceLocator());
         }
         
         return $inputFilter;

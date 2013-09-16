@@ -10,16 +10,8 @@ use Zend\InputFilter\InputFilterInterface;
 
 class InputFilter 
     extends ZendInputFilter
-    implements ServiceLocatorAwareInterface
 {
-    
-    /**
-     * Service locator
-     * 
-     * @var ServiceLocatorInterface
-     */
-    private $serviceLocator;
-    
+
     /**
      * Filter data
      * 
@@ -86,15 +78,7 @@ class InputFilter
         
         return $result;
     }
-    
-    /**
-     * @see \Zend\ServiceManager\ServiceLocatorAwareInterface::getServiceLocator()
-     */
-    public function getServiceLocator()
-    {
-        return $this->serviceLocator;
-    }
-    
+
     /**
      * Inject service locator to all inputs and their filter and validator
      * chain plugin managers
@@ -105,22 +89,20 @@ class InputFilter
      * 
      * @see \Zend\ServiceManager\ServiceLocatorAwareInterface::setServiceLocator()
      */
-    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
+    public function setMainServiceLocator(ServiceLocatorInterface $serviceLocator)
     {
-        $this->serviceLocator = $serviceLocator;
-        
         foreach ($this->inputs as $input) {
             
             if ($input instanceof ServiceLocatorAwareInterface) {
                 $input->setServiceLocator($serviceLocator);
             } elseif($input instanceof Input) {
                 $input->getFilterChain()
-                ->getPluginManager()
-                ->setServiceLocator($serviceLocator);
+                    ->getPluginManager()
+                    ->setServiceLocator($serviceLocator);
                 
                 $input->getValidatorChain()
-                ->getPluginManager()
-                ->setServiceLocator($serviceLocator);
+                    ->getPluginManager()
+                    ->setServiceLocator($serviceLocator);
             }
         }
     }
