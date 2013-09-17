@@ -488,10 +488,10 @@ class Helper
         $dm    = $this->repository->getDocumentManager();
         $coll  = $dm->getDocumentCollection($this->repository->getClassName());
         
-        // Prepare query
-        $query = $this->getUow()
-            ->getDocumentPersister($this->repository->getDocumentName())
-            ->prepareQueryOrNewObj($query);
+        // Prepare query and add filters
+        $persister = $this->getUow()->getDocumentPersister($this->repository->getDocumentName());
+        $preparedQuery = $persister->prepareQueryOrNewObj($query);
+        $query = $persister->addFilterToPreparedQuery($preparedQuery);
         
         // Retrieve cursor by performing find
         $cursor = $coll->find($query);
