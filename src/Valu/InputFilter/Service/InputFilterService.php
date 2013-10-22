@@ -66,6 +66,16 @@ class InputFilterService
     }
     
     /**
+     * Reload all input filters
+     * 
+     * @return boolean True on success
+     */
+    public function reloadAll()
+    {
+        return $this->repository->reloadAll();
+    }
+    
+    /**
      * @see \Zend\ServiceManager\ServiceLocatorAwareInterface::getServiceLocator()
      * @ValuService\Exclude
      */
