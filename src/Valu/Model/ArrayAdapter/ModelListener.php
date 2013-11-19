@@ -21,14 +21,14 @@ class ModelListener
      * 
      * @var array
      */
-    private $namespaces;
+    private $namespaces = [];
     
     /**
      * Array of proxy namespaces
      * 
      * @var array
      */
-    private $proxyNamespaces;
+    private $proxyNamespaces = [];
     
     public function __construct($options)
     {
