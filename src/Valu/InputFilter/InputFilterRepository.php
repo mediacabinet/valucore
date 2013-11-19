@@ -141,9 +141,28 @@ class InputFilterRepository
      */
     public function reload($name)
     {
-       $array = array();
-       $this->cascadeReload($name, $array);
+       $reloaded = array();
+       $this->cascadeReload($name, $reloaded);
        return true;
+    }
+    
+    /**
+     * Reload all input filters
+     */
+    public function reloadAll()
+    {
+        if (!count($this->inputFilters)) {
+            return false;
+        }
+    
+        $names = array_keys($this->inputFilters);
+        $reloaded = array();
+        
+        foreach ($names as $name) {
+            $this->cascadeReload($name, $reloaded);
+        }
+
+        return true;
     }
     
     /**
@@ -173,8 +192,8 @@ class InputFilterRepository
         $reloaded[] = $name;
     
         // Fetch references and reload each
-        foreach($this->getConfigurator()->getReferences($name) as $name){
-            $this->cascadeReload($name, $reloaded);
+        foreach($this->getConfigurator()->getReferences($name) as $reference){
+            $this->cascadeReload($reference, $reloaded);
         }
     }
     
