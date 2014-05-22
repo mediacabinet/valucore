@@ -23,12 +23,7 @@ class InputFilterService
      * @var ServiceLocatorInterface
      */
     private $serviceLocator;
-    
-    public static function version()
-    {
-        return '0.1';
-    }
-    
+
     public function __construct(InputFilterRepository $inputFilterRepository)
     {
         $this->repository = $inputFilterRepository;
