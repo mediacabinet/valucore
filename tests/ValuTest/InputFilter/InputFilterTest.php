@@ -18,7 +18,7 @@ class InputFilterTest extends TestCase
         
         $inputFilter->setMainServiceLocator($serviceLocator);
         
-        $this->assertEquals($serviceLocator, $input->getServiceLocator());
+        $this->assertSame($serviceLocator, $input->getServiceLocator());
     }
     
     public function testFilterChainInheritsServiceLocator()
@@ -38,9 +38,9 @@ class InputFilterTest extends TestCase
         // Inject service locator
         $inputFilter->setMainServiceLocator($serviceLocator);
         
-        $this->assertEquals(
+        $this->assertSame(
             $serviceLocator,
-            $input->getFilterChain()->getFilters()->top()->getServiceLocator()->getServiceLocator());
+            $input->getFilterChain()->getPluginManager()->getServiceLocator());
     }
     
     public function testValidatorChainInheritsServiceLocator()
@@ -62,7 +62,7 @@ class InputFilterTest extends TestCase
         
         $validators = $input->getValidatorChain()->getValidators();
         
-        $this->assertEquals(
+        $this->assertSame(
             $serviceLocator,
             $validators[0]['instance']->getServiceLocator()->getServiceLocator());
     }
