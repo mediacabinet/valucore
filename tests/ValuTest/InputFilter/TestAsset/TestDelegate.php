@@ -18,7 +18,7 @@ class TestDelegate implements DelegateInterface
     public function getInputFilterSpecifications(ConfiguratorInterface $configurator, $name)
     {
         if($this->getHandler){
-            call_user_func($this->getHandler, $configurator, $name);
+            return call_user_func($this->getHandler, $configurator, $name);
         }
     }
     
