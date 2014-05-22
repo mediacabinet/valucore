@@ -2,14 +2,14 @@
 return [
     'service_manager' => [
         'factories' => [
-            'ValuModelArrayAdapter' => 'Valu\\Model\\ArrayAdapter\\ArrayAdapterFactory',
+            'valu.array_adapter' => 'Valu\\Model\\ArrayAdapter\\ArrayAdapterFactory',
             'valu.inputfilter.repository' => 'Valu\InputFilter\ServiceManager\InputFilterRepositoryFactory',
         ],
         'aliases' => [
-            'ArrayAdapter' => 'ValuModelArrayAdapter',
+            'ArrayAdapter' => 'valu.array_adapter',
         ],
         'shared' => [
-            'ValuModelArrayAdapter' => false
+            'valu.array_adapter' => false
         ]
     ],
     'valu_so' => [
