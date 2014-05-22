@@ -2,7 +2,6 @@
 namespace Valu\InputFilter;
 
 use Zend\InputFilter\Input;
-
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\InputFilter\InputFilter as ZendInputFilter;
@@ -95,7 +94,10 @@ class InputFilter
             
             if ($input instanceof ServiceLocatorAwareInterface) {
                 $input->setServiceLocator($serviceLocator);
-            } elseif($input instanceof Input) {
+            } 
+            
+            // Inject ServiceLocator to filter and validator chains
+            if($input instanceof Input) {
                 $input->getFilterChain()
                     ->getPluginManager()
                     ->setServiceLocator($serviceLocator);
