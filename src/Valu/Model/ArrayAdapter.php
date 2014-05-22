@@ -38,13 +38,6 @@ class ArrayAdapter
     private $extractScalarsSilently = true;
     
     /**
-     * Shared array adapter instance
-     *
-     * @var ArrayAdapter
-     */
-    private static $sharedInstance;
-    
-    /**
      * Populate object from array
      *
      * @param \stdClass $object
@@ -262,31 +255,6 @@ class ArrayAdapter
     public function setEventManager($eventManager)
     {
         $this->eventManager = $eventManager;
-    }
-
-	/**
-     * Retrieve shared ArrayAdapter instance
-     *
-     * @return \Valu\Model\ArrayAdapter
-     * @todo Get rid of this method!
-     */
-    public static function getSharedInstance()
-    {
-        if (! self::$sharedInstance) {
-            self::$sharedInstance = new ArrayAdapter();
-        }
-        
-        return self::$sharedInstance;
-    }
-
-    /**
-     * Set shared ArrayAdapter instance
-     * 
-     * @param ArrayAdapter $arrayAdapter
-     */
-    public static function setSharedInstance(ArrayAdapter $arrayAdapter)
-    {
-        self::$sharedInstance = $arrayAdapter;
     }
     
     /**
