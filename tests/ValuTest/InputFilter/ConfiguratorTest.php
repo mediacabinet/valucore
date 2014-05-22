@@ -2,19 +2,14 @@
 namespace ValuTest\Acl;
 
 use ValuTest\InputFilter\TestAsset\TestDelegate;
-
 use Valu\InputFilter\Configurator\Delegate\ChildInputFilterDetector;
-
 use Valu\InputFilter\Configurator\Delegate\ParentInputFilterDetector;
-
 use Zend\InputFilter\Input;
-
-use Valu\InputFilter\InputFilter;
-
 use Valu\InputFilter\Configurator;
 use Valu\InputFilter\Configurator\Delegate\ConfigurationAggregate;
+use PHPUnit_Framework_TestCase as TestCase;
 
-class ConfiguratorTest extends \PHPUnit_Framework_TestCase{
+class ConfiguratorTest extends TestCase{
     
     protected $myModel = array(
         'myprop' => array('required' => false)
@@ -153,7 +148,7 @@ class ConfiguratorTest extends \PHPUnit_Framework_TestCase{
         
         $mymodelDelegate = new TestDelegate();
         $mymodelDelegate->getHandler = function($configurator, $name){
-            return array($name => array('extrainput' => array('required' => false)));
+            return array('extrainput' => array('required' => false));
         };
         
         $configurator = $this->getPreConfigured($config);
