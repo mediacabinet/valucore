@@ -6,7 +6,6 @@ use \ArrayObject;
 use Zend\Stdlib\ArrayUtils;
 use Valu\InputFilter\Configurator\DelegateManager;
 use Zend\Stdlib\PriorityQueue;
-use Zend\Stdlib\ErrorHandler;
 use Zend\InputFilter\InputFilterInterface;
 use Zend\InputFilter\Factory;
 use Zend\Cache\Storage\StorageInterface;
