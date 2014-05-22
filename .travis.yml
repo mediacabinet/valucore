@@ -6,4 +6,4 @@ php:
 before_script:
   - composer install --dev
   - cp ./tests/phpunit.xml ./phpunit.xml.dist
-  - sed 's/.\//.\/tests\//g' ./phpunit.xml.dist
+  - sed -i 's/\.\//.\/tests\//g' ./phpunit.xml.dist
