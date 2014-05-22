@@ -8,9 +8,9 @@ class DateFormatterListener
 {
     protected $defaultFormat = DATE_ISO8601;
     
-    public function __construct($options)
+    public function __construct($options = null)
     {
-        if (isset($options['format'])) {
+        if (is_array($options) && isset($options['format'])) {
             $this->setDateFormat($options['format']);
         }
     }

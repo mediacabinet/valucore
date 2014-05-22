@@ -29,13 +29,13 @@ class ModelListener
      */
     private $proxyNamespaces = [];
     
-    public function __construct($options)
+    public function __construct($options = null)
     {
-        if (isset($options['namespaces'])) {
+        if (is_array($options) && isset($options['namespaces'])) {
             $this->setNamespaces($options['namespaces']);
         }
         
-        if (isset($options['proxy_namespaces'])) {
+        if (is_array($options) && isset($options['proxy_namespaces'])) {
             $this->setProxyNamespaces($options['proxy_namespaces']);
         }
     }
