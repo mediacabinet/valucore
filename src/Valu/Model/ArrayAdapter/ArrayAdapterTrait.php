@@ -54,7 +54,7 @@ trait ArrayAdapterTrait
         if (isset(static::$defaultArrayAdapter)) {
             return static::$defaultArrayAdapter;
         } else {
-            return ArrayAdapter::getSharedInstance();
+            return new ArrayAdapter();
         }
     }
     
