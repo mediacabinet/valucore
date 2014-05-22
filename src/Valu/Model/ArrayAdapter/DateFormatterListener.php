@@ -2,7 +2,6 @@
 namespace Valu\Model\ArrayAdapter;
 
 use ArrayObject;
-use Valu\Model\ArrayAdapter;
 use Zend\EventManager\EventInterface;
 
 class DateFormatterListener
