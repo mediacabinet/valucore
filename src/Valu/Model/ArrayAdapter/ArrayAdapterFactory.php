@@ -1,9 +1,6 @@
 <?php
 namespace Valu\Model\ArrayAdapter;
 
-use Valu\Model\ArrayAdapter\DateFormatterDelegate;
-use Valu\Model\ArrayAdapter\RecursionDelegate;
-use Valu\Model\ArrayAdapter\ObjectRecursionDelegate;
 use Valu\Model\ArrayAdapter;
 use Zend\Cache\StorageFactory;
 use Zend\ServiceManager\FactoryInterface;
@@ -25,7 +22,7 @@ class ArrayAdapterFactory implements FactoryInterface
      * Shared cache instance
      * @var unknown_type
      */
-    private static $cache;
+    private $cache;
     
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
@@ -83,28 +80,20 @@ class ArrayAdapterFactory implements FactoryInterface
      */
     private function getCache(ServiceLocatorInterface $serviceLocator)
     {
-        if (!self::$cache) {
-            $config = $serviceLocator->get('Configuration');
-            
-            $adapterConfig = isset($config['model_framework']['array_adapter'])
+        $config = $serviceLocator->get('Configuration');
+        
+        $adapterConfig = isset($config['model_framework']['array_adapter'])
             ? $config['model_framework']['array_adapter'] : null;
-            
-            $cache = null;
-            
-            if(isset($adapterConfig['cache'])){
-                $cache = StorageFactory::factory($adapterConfig['cache']);
-            } elseif($serviceLocator->has('ObjectCache')) {
-                $cache = $serviceLocator->get('ObjectCache');
-            }
-            
-            if (!$cache) {
-                $cache = StorageFactory::factory(array('adapter' => 'memory'));
-            }
-            
-            self::$cache = $cache;
+        
+        $cache = null;
+        
+        if(isset($adapterConfig['cache'])){
+            $cache = StorageFactory::factory($adapterConfig['cache']);
+        } elseif($serviceLocator->has('ObjectCache')) {
+            $cache = $serviceLocator->get('ObjectCache');
         }
         
-        return self::$cache;
+        return $cache;
     }
     
     /**
