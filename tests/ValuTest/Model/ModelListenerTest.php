@@ -25,7 +25,7 @@ class ModelListenerTest extends PHPUnit_Framework_TestCase
     protected function setUp()
     {
         parent::setUp();
-        $this->modelListener = new ModelListener();
+        $this->modelListener = new ModelListener(['namespaces' => ['ValuTest\\']]);
         
         $adapter = new ArrayAdapter();
         MockModel::$arrayAdapter = $adapter;

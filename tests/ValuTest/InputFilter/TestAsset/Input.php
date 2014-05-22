@@ -12,6 +12,14 @@ class Input extends BaseInput implements ServiceLocatorAwareInterface
     public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
     {
         $this->serviceLocator = $serviceLocator;
+        
+        $this->getFilterChain()
+            ->getPluginManager()
+            ->setServiceLocator($serviceLocator);
+        
+        $this->getValidatorChain()
+            ->getPluginManager()
+            ->setServiceLocator($serviceLocator);
     }
 
     public function getServiceLocator()

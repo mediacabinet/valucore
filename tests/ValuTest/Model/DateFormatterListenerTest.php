@@ -4,7 +4,6 @@ namespace ValuTest\Model;
 use PHPUnit_Framework_TestCase;
 use Valu\Model\ArrayAdapter\DateFormatterListener;
 use Zend\EventManager\Event;
-use Valu\Model\ArrayAdapter;
 
 /**
  * DateFormatterListener test case.
