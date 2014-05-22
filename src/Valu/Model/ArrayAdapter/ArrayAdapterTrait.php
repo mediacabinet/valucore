@@ -63,7 +63,7 @@ trait ArrayAdapterTrait
      * 
      * @param \Valu\Model\ArrayAdapter $arrayAdapter 
      */
-    public static function setDefaultArrayAdapter(ArrayAdapter $arrayAdapter)
+    public static function setDefaultArrayAdapter($arrayAdapter)
     {
         static::$defaultArrayAdapter = $arrayAdapter;
     }
