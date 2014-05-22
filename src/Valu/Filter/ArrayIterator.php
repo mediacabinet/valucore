@@ -2,7 +2,6 @@
 namespace Valu\Filter;
 
 use Zend\Filter\AbstractFilter;
-use Zend\Filter\FilterInterface;
 
 class ArrayIterator extends AbstractFilter{
     
