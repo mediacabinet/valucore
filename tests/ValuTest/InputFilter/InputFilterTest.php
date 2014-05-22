@@ -1,21 +1,24 @@
 <?php
-namespace Valu\InputFilter;
+namespace ValuTest\InputFilter;
 
-use Zend\InputFilter\Input;
-
+use ValuTest\InputFilter\TestAsset\Input;
 use Zend\ServiceManager\ServiceManager;
-
 use PHPUnit_Framework_TestCase as TestCase;
+use Valu\InputFilter\InputFilter;
 
 class InputFilterTest extends TestCase
 {
-    public function testSetGetServiceLocator()
+    public function testInputInheritsServiceLocator()
     {
         $serviceLocator = new ServiceManager();
         $inputFilter = new InputFilter();
-        $inputFilter->setServiceLocator($serviceLocator);
         
-        $this->assertEquals($serviceLocator, $inputFilter->getServiceLocator());
+        $input = new Input('test');
+        $inputFilter->add($input);
+        
+        $inputFilter->setMainServiceLocator($serviceLocator);
+        
+        $this->assertEquals($serviceLocator, $input->getServiceLocator());
     }
     
     public function testFilterChainInheritsServiceLocator()
@@ -33,7 +36,7 @@ class InputFilterTest extends TestCase
         $inputFilter->add($input);
         
         // Inject service locator
-        $inputFilter->setServiceLocator($serviceLocator);
+        $inputFilter->setMainServiceLocator($serviceLocator);
         
         $this->assertEquals(
             $serviceLocator,
@@ -55,7 +58,7 @@ class InputFilterTest extends TestCase
         $inputFilter->add($input);
         
         // Inject service locator
-        $inputFilter->setServiceLocator($serviceLocator);
+        $inputFilter->setMainServiceLocator($serviceLocator);
         
         $validators = $input->getValidatorChain()->getValidators();
         
