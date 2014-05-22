@@ -6,10 +6,8 @@ use Valu\InputFilter\Configurator\Delegate\ParentInputFilterDetector;
 use Valu\InputFilter\Configurator\Delegate\ChildInputFilterDetector;
 use Valu\InputFilter\Configurator\Delegate\ConfigurationAggregate;
 use Valu\InputFilter\InputFilterRepository;
-use Valu\InputFilter\Configurator;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\ServiceManager\FactoryInterface;
-use Zend\ServiceManager\Exception\ServiceNotFoundException;
 use Zend\Cache\StorageFactory;
 
 class InputFilterRepositoryFactory
@@ -24,7 +22,6 @@ class InputFilterRepositoryFactory
         // Initialize cache
         if (isset($config['input_filter']['cache'])) {
             $cacheConfig = $config['input_filter']['cache'];
-            
             $cache = StorageFactory::factory($cacheConfig);
         } elseif ($serviceLocator->has('ObjectCache')) {
             $cache = $serviceLocator->get('ObjectCache');
