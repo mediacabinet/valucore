@@ -6,7 +6,6 @@ use Zend\EventManager\EventInterface;
 use ArrayObject;
 use Valu\Model\ArrayAdapter\ProviderInterface;
 use Zend\EventManager\Event;
-use Zend\Stdlib\PriorityQueue;
 use Zend\Cache\Storage\StorageInterface;
 use Zend\EventManager\EventManager;
 
