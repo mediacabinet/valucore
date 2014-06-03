@@ -18,9 +18,9 @@
 		"psr-0" : {
 			"Valu\\" : "src/"
 		},
-		"classmap": {
+		"classmap": [
             "src/Module.php"
-		}
+		]
 	},
 	"autoload-dev" : {
         "psr-0" : {
