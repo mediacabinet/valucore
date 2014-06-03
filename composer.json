@@ -16,11 +16,9 @@
 	},
 	"autoload" : {
 		"psr-0" : {
-			"Valu\\" : "src/"
-		},
-		"classmap": [
-            "src/Module.php"
-		]
+			"Valu\\" : "src/",
+			"ValuCore\\" : "src/"
+		}
 	},
 	"autoload-dev" : {
         "psr-0" : {
