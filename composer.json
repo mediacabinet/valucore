@@ -1,5 +1,5 @@
 {
-	"name" : "valu/valucore",
+	"name" : "valu/valu-core",
 	"description" : "Valu Core library",
 	"version" : "1.0.0",
 	"type" : "library",
@@ -16,8 +16,12 @@
 	},
 	"autoload" : {
 		"psr-0" : {
-			"ValuTest\\" : "tests/",
 			"Valu\\" : "src/"
 		}
-	}
+	},
+	"autoload-dev" : {
+        "psr-0" : {
+            "ValuTest\\" : "tests/"
+        }
+    }
 }
