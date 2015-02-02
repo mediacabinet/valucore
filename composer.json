@@ -1,7 +1,6 @@
 {
 	"name" : "valu/valucore",
 	"description" : "Valu Core library",
-	"version" : "1.0.0",
 	"type" : "library",
 	"keywords" : [
 		"valu"
