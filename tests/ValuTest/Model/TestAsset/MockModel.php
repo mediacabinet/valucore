@@ -54,4 +54,8 @@ class MockModel implements ProviderInterface
     {
         return static::$arrayAdapter;
     }
+
+    public function toArray($extract) {
+        return $this->getArrayAdapter()->toArray($this, $extract);
+    }
 }

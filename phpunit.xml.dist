@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit backupGlobals="false"
+         backupStaticAttributes="false"
+         colors="false"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         stopOnFailure="false"
+         syntaxCheck="false"
+         bootstrap="./tests/bootstrap.php"
+>
+    <php>
+        <env name="MONGO_SERVER" value="localhost"/>
+        <env name="MONGO_PORT" value="27017"/>
+        <env name="DROPBOX_ACCESS_TOKEN" value=""/>
+        <env name="DROPBOX_CLIENT_ID" value=""/>
+        <env name="DROPBOX_CLIENT_SECRET" value=""/>
+        <env name="DROPBOX_REDIRECT_URI" value=""/>
+        <env name="DROPBOX_AUTHORIZATION_CODE" value=""/>
+    </php>
+
+    <testsuites>
+        <testsuite name="Valu Test Suite">
+            <directory>./tests/ValuTest/</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

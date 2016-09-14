@@ -43,10 +43,7 @@ class ModelListenerTest extends PHPUnit_Framework_TestCase
         parent::tearDown();
     }
 
-    /**
-     * Tests ModelListener->__invoke()
-     */
-    public function testExtractsNamedProperties()
+    public function testExtractNamedProperties()
     {
         $modelData = ['name' => 'Mock model', 'id' => 'mockmodelid'];
         $model = $this->newMock($modelData);
@@ -70,7 +67,7 @@ class ModelListenerTest extends PHPUnit_Framework_TestCase
         );
     }
     
-    public function testExtractsOnlyId()
+    public function testExtractOnlyId()
     {
         $modelData = ['id' => 'mockmodelid'];
         $model = $this->newMock($modelData);
@@ -89,8 +86,35 @@ class ModelListenerTest extends PHPUnit_Framework_TestCase
         $this->modelListener->__invoke($event);
         
         $this->assertEquals(
-                ['object' => $modelData['id']],
-                $data->getArrayCopy()
+            ['object' => $modelData['id']],
+            $data->getArrayCopy()
+        );
+    }
+
+    public function testExtractUsingWildchar()
+    {
+        $adapter = new ArrayAdapter();
+        $adapter->getEventManager()->attach('extract', $this->modelListener);
+        MockModel::$arrayAdapter = $adapter;
+
+        $modelData = ['name' => 'Grand Child'];
+        $grandChild = $this->newMock($modelData);
+
+        $modelData = ['name' => 'Child', 'child' => $grandChild];
+        $child = $this->newMock($modelData);
+
+        $modelData = ['name' => 'Parent', 'child' => $child];
+        $parent = $this->newMock($modelData);
+
+        $arrayData = $parent->toArray(['child' => ['*' => true, 'child' => ['name' => true]]]);
+        $this->assertEquals(
+            [
+                'child' => [
+                    'name' => 'Child',
+                    'id' => '',
+                    'meta' => [],
+                    'child' => ['name' => 'Grand Child']]],
+            $arrayData
         );
     }
     

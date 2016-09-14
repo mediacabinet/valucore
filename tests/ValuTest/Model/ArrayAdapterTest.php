@@ -114,6 +114,40 @@ class ArrayAdapterTest extends \PHPUnit_Framework_TestCase
             $this->arrayAdapter->toArray($model, ['id' => true, 'name' => true])
         );
     }
+
+    public function testToArrayUsingWildcharAsExtractionParam()
+    {
+        $data = array(
+            'id'     => 'mock123',
+            'name'   => 'foo',
+            'meta'   => array('settings'=>['enabled' => true]),
+            'child'  => null
+        );
+
+        $model = $this->newMock($data);
+
+        $this->assertEquals(
+            ['id' => $data['id'], 'name' => $data['name'], 'meta' => $data['meta']],
+            $this->arrayAdapter->toArray($model, ['*' => true, 'child' => false])
+        );
+    }
+
+    public function testToArrayUsingWildcharWithAssociativeArray()
+    {
+        $data = array(
+            'id'     => 'mock123',
+            'name'   => 'foo',
+            'meta'   => array('settings'=>['enabled' => true]),
+            'child'  => null
+        );
+
+        $model = $this->newMock($data);
+
+        $this->assertEquals(
+            ['meta' => $data['meta']],
+            $this->arrayAdapter->toArray($model, ['meta' => true])
+        );
+    }
     
     public function testToArrayUsingStringAsExtractionParam()
     {

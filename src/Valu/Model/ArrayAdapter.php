@@ -12,6 +12,8 @@ use Zend\EventManager\EventManager;
 class ArrayAdapter
 {
 
+    const WILDCHAR = '*';
+
     const CACHE_PREFIX = 'valu_array_adapter_';
     
     /**
@@ -112,6 +114,12 @@ class ArrayAdapter
             $extract = array_fill_keys(array_keys($getters), true);
         } elseif (is_string($extract)) {
             $extract = array($extract => true);
+        } elseif (is_array($extract) && array_key_exists(self::WILDCHAR, $extract) && $extract[self::WILDCHAR]) {
+            $extractExplicit = $extract;
+            unset($extractExplicit[self::WILDCHAR]);
+
+            $extractImplicit = array_fill_keys(array_keys($getters), true);
+            $extract = array_merge($extractImplicit, $extractExplicit);
         }
 
         $eventParams = new ArrayObject([
@@ -300,7 +308,7 @@ class ArrayAdapter
             if (!array_key_exists($key, $data)) {
                 continue;
             }
-            
+
             if (!is_scalar($data[$key]) || !$this->getExtractScalarsSilently()) {
                 $event->setParam('spec', $key);
                 $event->setParam('extract', $extractNext);
