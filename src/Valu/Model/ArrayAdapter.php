@@ -1,6 +1,9 @@
 <?php
+
 namespace Valu\Model;
 
+use Zend\Code\Reflection\DocBlock\Tag\ParamTag;
+use Zend\Code\Reflection\DocBlockReflection;
 use Zend\EventManager\EventInterface;
 
 use ArrayObject;
@@ -15,29 +18,29 @@ class ArrayAdapter
     const WILDCHAR = '*';
 
     const CACHE_PREFIX = 'valu_array_adapter_';
-    
+
     /**
      * Cache
-     * 
+     *
      * @var \Zend\Cache\Storage\StorageInterface
      */
     private $cache;
-    
+
     /**
      * Event manager instance
-     * 
+     *
      * @var \Zend\EventManager\EventManager
      */
     private $eventManager;
-    
+
     /**
      * Whether or not scalar values should be extracted
      * silently
-     * 
+     *
      * @var boolean
      */
     private $extractScalarsSilently = true;
-    
+
     /**
      * Populate object from array
      *
@@ -45,44 +48,44 @@ class ArrayAdapter
      *            Object to populate
      * @param array $specs
      *            Specs to populate object with
-     * @param unknown_type $options            
+     * @param unknown_type $options
      * @throws \InvalidArgumentException
      */
     public function fromArray($object, array $specs, $options = null)
     {
-        if (! is_object($object)) {
+        if (!is_object($object)) {
             throw new \InvalidArgumentException(
-                    'Invalid value for argument $object; ' . gettype($object) .
-                             ' given, object expexted');
+                'Invalid value for argument $object; ' . gettype($object) .
+                ' given, object expexted');
         }
-        
+
         $definition = $this->getClassDefinition(get_class($object));
         $setters = $definition['setters'];
         $getters = $definition['getters'];
-        
+
         if (sizeof($specs)) {
             foreach ($specs as $spec => $value) {
-                
+
                 $method = isset($setters[$spec]) ? $setters[$spec] : null;
-                
+
                 // If array provided and target is an object
                 if (is_array($value) && isset($getters[$spec])) {
-                    
-                    $getter       = $getters[$spec];
+
+                    $getter = $getters[$spec];
                     $currentValue = $object->{$getter}();
-                    
+
                     if (is_object($currentValue)) {
                         if ($currentValue instanceof ProviderInterface) {
                             $currentValue->getArrayAdapter()->
-                                fromArray($currentValue, $value, $options);
+                            fromArray($currentValue, $value, $options);
                         } else {
                             $this->fromArray($currentValue, $value, $options);
                         }
-                        
+
                         continue; // Skip to next
                     }
-                } 
-                
+                }
+
                 if ($method) {
                     $object->{$method}($value);
                 }
@@ -99,17 +102,17 @@ class ArrayAdapter
      */
     public function toArray($object, $extract = null, $options = null)
     {
-        if (! is_object($object)) {
+        if (!is_object($object)) {
             throw new \InvalidArgumentException(
-                    'Invalid value for argument $object; ' . gettype($object) .
-                             ' given, object expexted');
+                'Invalid value for argument $object; ' . gettype($object) .
+                ' given, object expexted');
         }
-        
-        $options     = is_array($options) ? $options : array();
-        $definition  = $this->getClassDefinition(get_class($object));
-        $getters     = $definition['getters'];
-        $data        = new ArrayObject();
-        
+
+        $options = is_array($options) ? $options : array();
+        $definition = $this->getClassDefinition(get_class($object));
+        $getters = $definition['getters'];
+        $data = new ArrayObject();
+
         if (is_null($extract)) {
             $extract = array_fill_keys(array_keys($getters), true);
         } elseif (is_string($extract)) {
@@ -123,43 +126,43 @@ class ArrayAdapter
         }
 
         $eventParams = new ArrayObject([
-            'object'  => $object,
+            'object' => $object,
             'extract' => $extract,
-            'data'    => null,
-            'options' => $options
+            'data' => null,
+            'options' => $options,
         ]);
-        
+
         $this->getEventManager()->trigger('pre.toArray', $this, $eventParams);
-        
+
         if (!empty($eventParams['extract'])) {
-            
+
             foreach ($eventParams['extract'] as $key => $value) {
 
                 if (!$value || !isset($getters[$key])) {
                     continue;
                 }
-                
-                $method     = $getters[$key];
+
+                $method = $getters[$key];
                 $data[$key] = $object->{$method}();
             }
-            
+
             if (sizeof($data)) {
                 $eventPrototype = new Event('extract', $this, $eventParams);
                 $this->traverseAndExtract($eventPrototype, $data, $eventParams['extract']);
             }
         }
-        
+
         if (array_key_exists('spec', $eventParams)) {
             unset($eventParams['spec']);
         }
-        
+
         $eventParams['data'] = $data;
-        
+
         $this->getEventManager()->trigger('post.toArray', $this, $eventParams);
 
         return $data->getArrayCopy();
     }
-    
+
 
     /**
      * Retrieve class definition
@@ -170,26 +173,31 @@ class ArrayAdapter
      * 'setters' => array('property1' => 'setProperty1', ...)
      * )
      *
-     * @param unknown_type $class            
-     * @return Ambigous <multitype:, string>
+     * @param string $class
+     * @param boolean $complete
+     * @return array
      */
-    public function getClassDefinition($class)
+    public function getClassDefinition($class, $complete = false)
     {
         $cache = $this->getCache();
-        
-        $className = $class instanceof \ReflectionClass ? $class->getName() : (string) $class;
-        
+
+        $className = $class instanceof \ReflectionClass ? $class->getName() : (string)$class;
+
         // Make class name valid for cache adapters
         $cacheId = self::CACHE_PREFIX . str_replace('\\', '_', $className);
-        
+
+        if ($complete) {
+            $cacheId .= '-complete';
+        }
+
         /**
          * Fetch from cache or parse
          */
         if ($cache && $cache->hasItem($cacheId)) {
             $definition = $cache->getItem($cacheId);
         } else {
-            $definition = $this->parseClassDefinition($class);
-            
+            $definition = $this->parseClassDefinition($class, $complete);
+
             /**
              * Cache definition
              */
@@ -197,7 +205,7 @@ class ArrayAdapter
                 $cache->setItem($cacheId, $definition);
             }
         }
-        
+
         return $definition;
     }
 
@@ -214,7 +222,7 @@ class ArrayAdapter
     /**
      * Set cache adapter
      *
-     * @param \Zend\Cache\Storage\StorageInterface $cache            
+     * @param \Zend\Cache\Storage\StorageInterface $cache
      * @return \Valu\Model\ArrayAdapter
      */
     public function setCache(StorageInterface $cache)
@@ -222,7 +230,7 @@ class ArrayAdapter
         $this->cache = $cache;
         return $this;
     }
-    
+
     /**
      * @return \Zend\EventManager\EventManager
      */
@@ -231,14 +239,14 @@ class ArrayAdapter
         if (!$this->eventManager) {
             $this->setEventManager(new EventManager());
         }
-        
+
         return $this->eventManager;
     }
 
-	/**
-	 * Should scalars be extracted silently (no event
-	 * is triggered)?
-	 * 
+    /**
+     * Should scalars be extracted silently (no event
+     * is triggered)?
+     *
      * @return boolean
      */
     public function getExtractScalarsSilently()
@@ -246,9 +254,9 @@ class ArrayAdapter
         return $this->extractScalarsSilently;
     }
 
-	/**
-	 * Enable/disable silent extraction for scalar values
-	 * 
+    /**
+     * Enable/disable silent extraction for scalar values
+     *
      * @param boolean $extractScalarsSilently
      */
     public function setExtractScalarsSilently($extractScalarsSilently = true)
@@ -256,17 +264,17 @@ class ArrayAdapter
         $this->extractScalarsSilently = $extractScalarsSilently;
     }
 
-	/**
+    /**
      * @param \Zend\EventManager\EventManager $eventManager
      */
     public function setEventManager($eventManager)
     {
         $this->eventManager = $eventManager;
     }
-    
+
     /**
      * Traverse and extract data recursively
-     * 
+     *
      * @param EventInterface $event Event prototype
      * @param \ArrayAccess $data
      * @param array|boolean $extract
@@ -278,33 +286,33 @@ class ArrayAdapter
         foreach ($data as $key => &$value) {
             $keys[] = $key;
         }
-        
+
         // Iterate keys
         foreach ($keys as $key) {
-            
+
             if (is_numeric($key)) {
                 $extractNext = $extract;
-            } elseif($extract === true) {
+            } elseif ($extract === true) {
                 $extractNext = $extract;
             } elseif (is_array($extract) && array_key_exists($key, $extract)) {
                 $extractNext = $extract[$key];
             } else {
                 $extractNext = false;
             }
-            
+
             if (!is_array($extractNext) && $extractNext != true) {
                 unset($data[$key]);
                 continue;
             }
-            
+
             if (is_array($data[$key])) {
                 $data[$key] = new ArrayObject($data[$key]);
             }
-            
+
             if ($data[$key] instanceof \ArrayAccess) {
                 $this->traverseAndExtract($event, $data[$key], $extractNext);
             }
-            
+
             if (!array_key_exists($key, $data)) {
                 continue;
             }
@@ -313,10 +321,10 @@ class ArrayAdapter
                 $event->setParam('spec', $key);
                 $event->setParam('extract', $extractNext);
                 $event->setParam('data', $data);
-                
+
                 $this->getEventManager()->trigger($event);
             }
-            
+
             if (isset($data[$key]) && $data[$key] instanceof ArrayObject) {
                 $data[$key] = $data[$key]->getArrayCopy();
             }
@@ -326,10 +334,11 @@ class ArrayAdapter
     /**
      * Parse class definition
      *
-     * @param string $class            
+     * @param string $class
+     * @param boolean $complete
      * @return array
      */
-    private function parseClassDefinition($class)
+    private function parseClassDefinition($class, $complete)
     {
         if (is_string($class)) {
             $reflectionClass = new \ReflectionClass($class);
@@ -337,46 +346,106 @@ class ArrayAdapter
             $reflectionClass = $class;
         } else {
             throw new \InvalidArgumentException(
-                    'Invalid class, string or ReflectionClass expected');
+                'Invalid class, string or ReflectionClass expected');
         }
-        
+
         $definition = array(
-                'getters' => array(),
-                'setters' => array()
+            'getters' => array(),
+            'setters' => array(),
         );
-        
+
         $properties = $reflectionClass->getProperties();
-        
-        $specs = array();
-        if (! empty($properties)) {
+
+        if (!empty($properties)) {
             foreach ($properties as $property) {
-                
+
                 $name = $property->getName();
                 $private = substr($name, 0, 1) == '_';
-                
+
                 if ($private || $property->isStatic()) {
                     continue;
                 }
-                
+
                 $getter = 'get' . ucfirst($name);
                 $setter = 'set' . ucfirst($name);
-                
-                if ($reflectionClass->hasMethod($getter) 
+
+                $hasGetter = false;
+                $hasSetter = false;
+
+                if ($reflectionClass->hasMethod($getter)
                     && $reflectionClass->getMethod($getter)->isPublic()
                     && !$reflectionClass->getMethod($getter)->isStatic()) {
-                    
+
                     $definition['getters'][$name] = $getter;
+                    $hasGetter = true;
                 }
-                
-                if ($reflectionClass->hasMethod($setter) 
+
+                if ($reflectionClass->hasMethod($setter)
                     && $reflectionClass->getMethod($setter)->isPublic()
                     && !$reflectionClass->getMethod($setter)->isStatic()) {
-                    
+
                     $definition['setters'][$name] = $setter;
+                    $hasSetter = true;
+                }
+
+                if (($hasGetter || $hasSetter) && $complete) {
+                    $prop = [
+                        'description' => '',
+                        'types' => [],
+                        'shapes' => []
+                    ];
+
+                    if ($property->getDocComment()) {
+                        $docBlock = new DocBlockReflection($property->getDocComment());
+
+                        $descr = [];
+                        if ($docBlock->getShortDescription()) {
+                            $descr[] = $docBlock->getShortDescription();
+                        }
+
+                        if ($docBlock->getLongDescription()) {
+                            $descr[] = $docBlock->getLongDescription();
+                        }
+
+                        $varTag = $docBlock->getTag('var');
+                        if ($varTag) {
+                            $paramTag = new ParamTag();
+                            $paramTag->initialize($varTag->getContent());
+                            $prop['types'] = $paramTag->getTypes();
+
+                            if ($paramTag->getDescription()) {
+                                $descr[] = $paramTag->getDescription();
+                            }
+                        }
+
+                        $shapeTag = $docBlock->getTag('shape');
+                        if ($shapeTag) {
+                            $shapes = explode('|', trim($shapeTag->getContent()));
+
+                            foreach ($shapes as $shapeMap) {
+                                $items = explode(':', $shapeMap);
+                                if (sizeof($items) > 1) {
+                                    list($type, $shape) = $items;
+                                } else {
+                                    $type = '*';
+                                    $shape = $shapeMap;
+                                }
+
+                                $prop['shapes'][$type] = $shape;
+                            }
+                        }
+                        
+                        $prop['description'] = implode("\n", $descr) . '';
+                    }
+
+                    // TODO: getDefaultValue available only starting from PHP 8
+                    // $prop['default'] = $property->getDefaultValue();
+                    $prop['readonly'] = !$hasSetter;
+                    $definition['properties'][$name] = $prop;
                 }
             }
         }
-        
+
         return $definition;
     }
 }
